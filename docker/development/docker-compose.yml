@@ -8,9 +8,17 @@ services:
       dockerfile: ../docker/development/Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      MARYTTS_URL: http://mtts-marytts:59125/
     volumes:
       - "../../backend:/app"
       - "mtts-pip-cache:/root/.cache/pip"
 
+  mtts-marytts:
+    restart: "no"
+    image: synesthesiam/marytts:5.2
+    ports:
+      - "59125:59125"
+
 volumes:
-  ccg-pip-cache:
+  mtts-pip-cache:
