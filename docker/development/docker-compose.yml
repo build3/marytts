@@ -1,0 +1,16 @@
+version: "3.7"
+
+services:
+  mtts-backend:
+    restart: "no"
+    build:
+      context: ../../backend
+      dockerfile: ../docker/development/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - "../../backend:/app"
+      - "mtts-pip-cache:/root/.cache/pip"
+
+volumes:
+  ccg-pip-cache:
