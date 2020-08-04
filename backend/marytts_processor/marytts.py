@@ -12,6 +12,7 @@ MARYTTS_PROCESS_ENDPOINT = 'process'
 
 
 class MaryTTSRepository(BaseMaryTTSRepository):
+
     def voice_output(self, text: str) -> Tuple[bytes, str, int]:
         query_hash = {
             "INPUT_TEXT": text,
