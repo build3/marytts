@@ -12,7 +12,7 @@ MARYTTS_PROCESS_ENDPOINT = 'process'
 
 
 class MaryTTSRepository(BaseMaryTTSRepository):
-    def voice_output(self, text: str) -> Tuple[bytes, str]:
+    def voice_output(self, text: str) -> Tuple[bytes, str, int]:
         query_hash = {
             "INPUT_TEXT": text,
             "INPUT_TYPE": "TEXT",
@@ -26,4 +26,4 @@ class MaryTTSRepository(BaseMaryTTSRepository):
 
         response = requests.post(f"{MARYTTS_URL}{MARYTTS_PROCESS_ENDPOINT}?{query}")
 
-        return response.content, response.headers['Content-Type']
+        return response.content, response.headers['Content-Type'], response.status_code

@@ -13,5 +13,5 @@ def get_voice_output():
     if not text:
         abort(400, 'input_text property is required')
 
-    content, mimetype = process_voice_output(text)
-    return Response(content, mimetype=mimetype)
+    content, mimetype, status = process_voice_output(text)
+    return Response(content, mimetype=mimetype, status=status)
