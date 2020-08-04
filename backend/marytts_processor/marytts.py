@@ -13,12 +13,12 @@ MARYTTS_PROCESS_ENDPOINT = 'process'
 
 class MaryTTSRepository(BaseMaryTTSRepository):
 
-    def voice_output(self, text: str) -> Tuple[bytes, str, int]:
+    def voice_output(self, text: str, locale: str, voice: str) -> Tuple[bytes, str, int]:
         query_hash = {
             "INPUT_TEXT": text,
             "INPUT_TYPE": "TEXT",
-            "LOCALE": "en_US",
-            "VOICE": "cmu-bdl-hsmm",
+            "LOCALE": locale,
+            "VOICE": voice,
             "OUTPUT_TYPE": "AUDIO",
             "AUDIO": "WAVE"
         }
