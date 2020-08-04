@@ -1,15 +1,12 @@
 const path = require('path')
 const { VueLoaderPlugin } = require('vue-loader')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = (env = {}) => ({
   mode: env.prod ? 'production' : 'development',
   devtool: env.prod ? 'source-map' : 'cheap-module-eval-source-map',
   entry: path.resolve(__dirname, './src/main.js'),
-  output: {
-    path: path.resolve(__dirname, './dist'),
-    publicPath: '/dist/'
-  },
   resolve: {
     alias: {
       'vue': '@vue/runtime-dom'
@@ -41,8 +38,13 @@ module.exports = (env = {}) => ({
   plugins: [
     new VueLoaderPlugin(),
     new MiniCssExtractPlugin({
-      filename: '[name].css'
-    })
+      filename: '[name].[hash].css'
+    }),
+    new HtmlWebpackPlugin({
+      filename: 'index.html',
+      template: 'src/index.html',
+      inject: true
+    }),
   ],
   devServer: {
     host: '0.0.0.0',
