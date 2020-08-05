@@ -17,6 +17,10 @@ def create_app():
 
     app.config.from_pyfile('config.py', silent=True)
 
+    from gateway import gateway_bp
+
+    app.register_blueprint(gateway_bp)
+
     try:
         os.makedirs(app.instance_path)
     except OSError:
