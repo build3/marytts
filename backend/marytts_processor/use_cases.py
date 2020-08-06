@@ -40,31 +40,16 @@ def process_phonemes(
     if _is_complex(sentences):
         for sentence in sentences:
             phrases = _get_phrases_from_prosody(sentence['prosody'])
+            _serialize_phrases(data, durations, previous_hertz, phrases)
 
-            if isinstance(phrases, list):
-                for phrase in phrases:
-                    if isinstance(phrase, list):
-                        for prodigy_phrase in phrase:
-                            data['phrases'].append(_create_phrase_dict(prodigy_phrase, durations, previous_hertz))
-                    else:
-                        data['phrases'].append(_create_phrase_dict(phrase, durations, previous_hertz))
-            else:
-                data['phrases'].append(_create_phrase_dict(phrases, durations, previous_hertz))
     else:
         if 'prosody' in sentences:
             phrases = _get_phrases_from_prosody(sentences['prosody'])
+
         else:
             phrases = sentences['phrase']['t']
 
-        if isinstance(phrases, list):
-            for phrase in phrases:
-                if isinstance(phrase, list):
-                    for prodigy_phrase in phrase:
-                        data['phrases'].append(_create_phrase_dict(prodigy_phrase, durations, previous_hertz))
-                else:
-                    data['phrases'].append(_create_phrase_dict(phrase, durations, previous_hertz))
-        else:
-            data['phrases'].append(_create_phrase_dict(phrases, durations, previous_hertz))
+        _serialize_phrases(data, durations, previous_hertz, phrases)
 
     return json.dumps(data), status_code
 
@@ -74,6 +59,22 @@ def _get_phrases_from_prosody(prosody: Any) -> list:
         return [single_prosody['phrase']['t'] for single_prosody in prosody]
 
     return prosody['phrase']['t']
+
+
+def _serialize_phrases(data: dict, durations: list, previous_hertz: list, phrases: Any) -> None:
+    if isinstance(phrases, list):
+        for phrase in phrases:
+            if isinstance(phrase, list):
+                data['phrases'] += [
+                    _create_phrase_dict(prodigy_phrase, durations, previous_hertz)
+                    for prodigy_phrase in phrase
+                ]
+
+            else:
+                data['phrases'].append(_create_phrase_dict(phrase, durations, previous_hertz))
+
+    else:
+        data['phrases'].append(_create_phrase_dict(phrases, durations, previous_hertz))
 
 
 def _is_complex(sentences: Any) -> bool:
@@ -89,7 +90,10 @@ def _create_phrase_dict(phrase: dict, durations: list, previous_hertz: list) -> 
         return
 
     if isinstance(syllables, list):
-        syllables_data = [_get_phrases_from_syllable(syllable['ph'], durations, previous_hertz) for syllable in syllables]
+        syllables_data = [
+            _get_phrases_from_syllable(syllable['ph'], durations, previous_hertz)
+            for syllable in syllables
+        ]
     else:
         syllables_data = [_get_phrases_from_syllable(syllables['ph'], durations, previous_hertz)]
 
