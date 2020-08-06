@@ -100,6 +100,9 @@ class MaryTTSXMLProcessor:
         else:
             self.data['phrases'].append(self._create_phrase_dict(phrases))
 
+        # Filter out nulls from dots phrases.
+        self.data['phrases'] = list(filter(None, self.data['phrases']))
+
     def _create_phrase_dict(self, phrase: dict) -> MaryXmlUnion:
         """
         Here I'm creating dict for the single phrase from the XML.
