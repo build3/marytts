@@ -10,12 +10,20 @@ that the variable maybe either list or dict.
 import json
 import re
 
-from typing import Any, Tuple, Union
+from typing import Any, Iterator, Tuple, Union
 
 import xmltodict
 
 
 MaryXmlUnion = Union[dict, list]
+
+
+def _flatten(phonemes_data: list) -> Iterator[list]:
+    for element in phonemes_data:
+        if isinstance(element, list):
+            yield from _flatten(element)
+        else:
+            yield element
 
 
 class MaryTTSXMLProcessor:
@@ -111,17 +119,17 @@ class MaryTTSXMLProcessor:
             return
 
         if isinstance(syllables, list):
-            syllables_data = [
+            phonemes_data = [
                 self._get_phonemes_from_syllable(syllable['ph'])
                 for syllable in syllables
             ]
         else:
-            syllables_data = [self._get_phonemes_from_syllable(syllables['ph'])]
+            phonemes_data = [self._get_phonemes_from_syllable(syllables['ph'])]
 
         return {
             'phrase': phrase['@ph'],
             'text': phrase['#text'],
-            'syllables': syllables_data,
+            'phonemes': list(_flatten(phonemes_data)),
         }
 
     def _get_phonemes_from_syllable(self, phoneme: MaryXmlUnion) -> list:
