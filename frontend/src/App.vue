@@ -13,6 +13,7 @@
                     <textarea class="textarea" placeholder="Insert your text here" rows="30" v-model="userText"></textarea>
                     <button class="button has-text-weight-bold is-primary mt-2 is-fullwidth"
                         :class="toggleLoader"
+                        :disabled = "disableBtn"
                         @click="generateAudio">Generete audio</button>
                 </div>
                 <div class="column my-2 mr-2">
@@ -36,7 +37,7 @@
     </div>
 </template>
 <script>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 export default {
     setup () {
@@ -46,6 +47,7 @@ export default {
         const locale = ref(undefined);
         const type = ref(undefined);
         const toggleLoader = ref(undefined)
+        const disableBtn = ref(true)
         const voiceTypes = [
             { id:1, locale: 'te', type: 'cmu-nk-hsmm', sex: 'female'},
             { id:2, locale: 'sv', type: 'stts-sv-hb-hsmm', sex: 'male'},
@@ -98,13 +100,22 @@ export default {
                 });
         };
 
+        watch([selectedVoice, userText], () => {
+            if(selectedVoice.value != undefined && userText.value != undefined) {
+                disableBtn.value = false;
+            } else {
+                disableBtn.value = true;
+            };
+        });
+
         return {
             stream,
             generateAudio,
             userText,
             selectedVoice,
             voiceTypes,
-            toggleLoader
+            toggleLoader,
+            disableBtn
         }
     },
 };
