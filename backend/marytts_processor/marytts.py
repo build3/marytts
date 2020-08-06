@@ -45,6 +45,5 @@ class MaryTTSRepository(BaseMaryTTSRepository):
 
         return response.content, response.status_code
 
-
     def _send_process_request(self, query: str) -> 'Response':
         return requests.post(f"{MARYTTS_URL}{MARYTTS_PROCESS_ENDPOINT}?{query}")
