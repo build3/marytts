@@ -1,8 +1,8 @@
 """
 This module is used to process the XML obtained from
 MaryTTS server with `MaryTTSRepository`. The most important
-thing which I wanted to make you aware is that most or all
-field in the XML may occur as list of objects or single object.
+thing which I wanted to make you aware is that most of
+fields in the XML may occur as list of objects or single object.
 Cause of that I introduced new `MaryXmlUnion` type which signals
 that the variable maybe either list or dict.
 """
@@ -22,8 +22,8 @@ class MaryTTSXMLProcessor:
 
     def __init__(self, xml: bytes):
         self.data = {'phrases': []}
-        self.durations = []
-        self.previous_hertz = []
+        self.total_duration = 0 ### Total duration in ms used to calculate time percantage of duration.
+        self.previous_hertz = 22 ### Last known hertz value.
 
         parsed_xml = xmltodict.parse(xml.decode('utf-8'))
         self.sentences: MaryXmlUnion = parsed_xml['maryxml']['p']['s']
@@ -31,15 +31,11 @@ class MaryTTSXMLProcessor:
     def process(self) -> str:
         if self._is_complex():
             for sentence in self.sentences:
-                phrases = self._get_phrases_from_prosody(sentence['prosody'])
-                self._serialize_phrases(phrases)
+                phrases_tokens = self._get_phrases_from_prosody(sentence['prosody'])
+                self._serialize_phrases(phrases_tokens)
         else:
-            if 'prosody' in self.sentences:
-                phrases = self._get_phrases_from_prosody(self.sentences['prosody'])
-            else:
-                phrases = self.sentences['phrase']['t']
-
-            self._serialize_phrases(phrases)
+            phrases_tokens = self._get_phrases_from_not_complex_word()
+            self._serialize_phrases(phrases_tokens)
 
         return json.dumps(self.data)
 
@@ -50,6 +46,12 @@ class MaryTTSXMLProcessor:
         """
         return isinstance(self.sentences, list)
 
+    def _get_phrases_from_not_complex_word(self):
+        if 'prosody' in self.sentences:
+            return self._get_phrases_from_prosody(self.sentences['prosody'])
+
+        return self._get_phrase_token(self.sentences['phrase'])
+
     def _get_phrases_from_prosody(self, prosody: MaryXmlUnion) -> list:
         """
         The prosody field is not required to be in the XML but if it
@@ -58,9 +60,22 @@ class MaryTTSXMLProcessor:
         prosody or take one  phrase from the object.
         """
         if isinstance(prosody, list):
-            return [single_prosody['phrase']['t'] for single_prosody in prosody]
+            return [
+                self._get_phrase_token(single_prosody['phrase'])
+                for single_prosody in prosody
+            ]
 
-        return prosody['phrase']['t']
+        return self._get_phrase_token(prosody['phrase'])
+
+    def _get_phrase_token(self, phrase: dict):
+        """
+        To obtain the phonemes from the phrases I need
+        to first get to the phrase tokens in the XML.
+        """
+        if 'mtu' in phrase:
+            return phrase['mtu']['t']
+
+        return phrase['t']
 
     def _serialize_phrases(self, phrases: MaryXmlUnion) -> None:
         if isinstance(phrases, list):
@@ -78,6 +93,17 @@ class MaryTTSXMLProcessor:
             self.data['phrases'].append(self._create_phrase_dict(phrases))
 
     def _create_phrase_dict(self, phrase: dict) -> MaryXmlUnion:
+        """
+        Here I'm creating dict for the single phrase from the XML.
+        A phrase may consists of letters or punctuations.
+        Most of the phrases should have syllable property.
+        If not they are probably something like dot in the end of sentence.
+        Every syllabe has a phenome which is marked as ph in the XML.
+        Then in the phenome I use f0 property to get hertz and
+        calculate specific moment in time associated with the frequency.
+        It is possible that f0 is empty then I take the last
+        frequency which is constant across duration of the phoneme.
+        """
         syllables: MaryXmlUnion = phrase.get('syllable')
 
         if not syllables:
@@ -86,11 +112,11 @@ class MaryTTSXMLProcessor:
 
         if isinstance(syllables, list):
             syllables_data = [
-                self._get_phrases_from_syllable(syllable['ph'])
+                self._get_phonemes_from_syllable(syllable['ph'])
                 for syllable in syllables
             ]
         else:
-            syllables_data = [self._get_phrases_from_syllable(syllables['ph'])]
+            syllables_data = [self._get_phonemes_from_syllable(syllables['ph'])]
 
         return {
             'phrase': phrase['@ph'],
@@ -98,52 +124,83 @@ class MaryTTSXMLProcessor:
             'syllables': syllables_data,
         }
 
-    def _get_phrases_from_syllable(self, ph: MaryXmlUnion) -> list:
-        if isinstance(ph, list):
-            return [self._single_phrase_dict(phrase) for phrase in ph]
-
-        return [self._single_phrase_dict(ph)]
-
-    def _single_phrase_dict(self, phrase: dict) -> dict:
-        return {'f0': self._get_list_of_f0(phrase)}
-
-    def _get_list_of_f0(self, ph: dict) -> list:
-        f0 = ph.get('@f0')
-        duration = int(ph['@d'])
-
-        if not f0:
-            phonemes = [self._empty_phoneme(duration)]
-        else:
-            phonemes = list(filter(None, re.split("(\(\d+,\d+\))", f0)))
-            phonemes = [
-                self._phoneme_dict(phoneme, duration)
-                for phoneme in phonemes
+    def _get_phonemes_from_syllable(self, phoneme: MaryXmlUnion) -> list:
+        if isinstance(phoneme, list):
+            return [
+                self._single_phoneme_dict(single_phoneme)
+                for single_phoneme in phoneme
             ]
 
-        self.durations.append(duration)
+        return [self._single_phoneme_dict(phoneme)]
 
-        return phonemes
+    def _single_phoneme_dict(self, phoneme: dict) -> list:
+        return self._get_list_of_f0_hertz(phoneme)
+
+    def _get_list_of_f0_hertz(self, phoneme: dict) -> list:
+        """
+        This function converts f0 string to the dict with
+        ms and hertz. I've introduced here a little
+        side effect which adds duration of processed phenome
+        to the `total_duration`. So I can calculate ms for
+        the next phoneme.
+        """
+        f0 = phoneme.get('@f0')
+        duration = int(phoneme['@d'])
+
+        if not f0:
+            f0_hertz_with_ms = [self._empty_phoneme(duration)]
+        else:
+            f0_pairs = self._split_phoneme_pairs(f0)
+
+            f0_hertz_with_ms = [
+                self._phoneme_dict(pair, duration)
+                for pair in f0_pairs
+            ]
+
+        self.total_duration += duration
+
+        return f0_hertz_with_ms
 
     def _empty_phoneme(self, duration: int) -> dict:
-        if not self.previous_hertz:
-            hertz = 22
-        else:
-            hertz = self.previous_hertz[-1]
-
-        previous_hertz = [hertz]
-
+        """
+        This is used when there is no f0 property in the ph in the XML.
+        As there is no f0 I don't have information about time percentage
+        so the hertz are probably constant during the period.
+        In this case I just add whole duration and total duration to
+        obtain point in time.
+        """
         return {
-            'microsecond': duration + sum(self.durations),
-            'hertz': hertz
+            'ms': duration + self.total_duration,
+            'hertz': self.previous_hertz
         }
 
-    def _phoneme_dict(self, phoneme: str, duration: int) -> dict:
-        time_percentage, hertz = eval(phoneme)
-        self.previous_hertz.append(hertz)
+    def _split_phoneme_pairs(self, f0: str) -> list:
+        """
+        This function takes f0 from the phoneme and
+        split the pairs.
 
-        microsecond = duration * (int(time_percentage) / 100) + sum(self.durations)
+        f0 property has following schema:
+            f0="(4,130)(9,140)(14,138)"
+
+        where first parameter in the pair is percentage time of
+        phoneme duration and the other is frequency in Hz in that moment.
+        """
+        return list(filter(None, re.split("(\(\d+,\d+\))", f0)))
+
+    def _phoneme_dict(self, pair: str, duration: int) -> dict:
+        """
+        Returns dict with ms and Hz value from phoneme
+        from the specific moment in time.
+        The ms is calculated from total duration processed
+        up to this moment.
+        """
+        # Convert string (4,130) to python's tuple and destruct values
+        time_percentage, hertz = eval(pair)
+        self.previous_hertz = hertz
+
+        ms = duration * (int(time_percentage) / 100) + self.total_duration
 
         return {
-            'microsecond': int(microsecond),
+            'ms': int(ms),
             'hertz': hertz,
         }
