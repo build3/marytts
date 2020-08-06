@@ -11,20 +11,24 @@
             <div class="columns">
                 <div class="column my-2 ml-2">
                     <textarea class="textarea" placeholder="Insert your text here" rows="30" v-model="userText"></textarea>
-                    <button class="button has-text-weight-bold is-primary mt-2 is-fullwidth" @click="generateAudio">Generete audio</button>
+                    <button class="button has-text-weight-bold is-primary mt-2 is-fullwidth"
+                        :class="toggleLoader"
+                        @click="generateAudio">Generete audio</button>
                 </div>
                 <div class="column my-2 mr-2">
                     <div class="field">
                         <div class="control">
                             <div class="select is-fullwidth is-primary">
                                 <select v-model="selectedVoice">
-                                    <option :value="id" v-for="{id, locale, sex, type} in selectData" :key="id">
+                                    <option :value="id" v-for="{id, locale, sex, type} in voiceTypes" :key="id">
                                         {{ locale }} - {{ sex }} - {{ type }}</option>
                                 </select>
                             </div>
                         </div>
                     </div>
-                    <audio :src="stream" autoplay="true" controls="" type="audio/wave"></audio>
+                    <div v-if="stream">
+                        <audio :src="stream" autoplay="true" controls="" type="audio/wave"></audio>
+                    </div>
                 </div>
             </div>
         </section>
@@ -41,7 +45,8 @@ export default {
         const selectedVoice = ref(undefined);
         const locale = ref(undefined);
         const type = ref(undefined);
-        const selectData = [
+        const toggleLoader = ref(undefined)
+        const voiceTypes = [
             { id:1, locale: 'te', type: 'cmu-nk-hsmm', sex: 'female'},
             { id:2, locale: 'sv', type: 'stts-sv-hb-hsmm', sex: 'male'},
             { id:3, locale: 'tr', type: 'dfki-ot-hsmm', sex: 'male'},
@@ -63,8 +68,13 @@ export default {
             { id:18, locale: 'ru', type: 'ac-irina-hsmm', sex: 'female'},
         ];
 
+        const bindLoader = (runLoader) => {
+            (runLoader)? toggleLoader.value = 'is-loading' : toggleLoader.value = '';
+        };
+
         const generateAudio = () => {
-            const selectedSpeechVoice = selectData.find(x => x.id === selectedVoice.value);
+            bindLoader(true);
+            const selectedSpeechVoice = voiceTypes.find(x => x.id === selectedVoice.value);
             const { locale, type } = selectedSpeechVoice;
 
             const requestObjects = {
@@ -84,6 +94,7 @@ export default {
                     reader.onloadend = () => {
                     stream.value = reader.result };
                     reader.readAsDataURL(blob);
+                    bindLoader(false);
                 });
         };
 
@@ -92,7 +103,8 @@ export default {
             generateAudio,
             userText,
             selectedVoice,
-            selectData
+            voiceTypes,
+            toggleLoader
         }
     },
 };
