@@ -2,3 +2,4 @@ gevent==20.6.2
 Flask==1.1.2
 requests==2.24.0
 Flask-Cors==3.0.8
+xmltodict==0.12.0
