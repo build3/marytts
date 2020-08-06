@@ -20,11 +20,31 @@ class MaryTTSRepository(BaseMaryTTSRepository):
             "LOCALE": locale,
             "VOICE": voice,
             "OUTPUT_TYPE": "AUDIO",
-            "AUDIO": "WAVE"
+            "AUDIO": "WAVE",
         }
 
         query = urlencode(query_hash)
 
-        response = requests.post(f"{MARYTTS_URL}{MARYTTS_PROCESS_ENDPOINT}?{query}")
+        response = self._send_process_request(query)
 
         return response.content, response.headers['Content-Type'], response.status_code
+
+    def load_acoustic_params(self, text: str, locale: str, voice: str) -> Tuple[bytes, int]:
+        query_hash = {
+            "INPUT_TEXT": text,
+            "INPUT_TYPE": "TEXT",
+            "LOCALE": locale,
+            "VOICE": voice,
+            "OUTPUT_TYPE": "ACOUSTPARAMS",
+            "AUDIO": "WAVE",
+        }
+
+        query = urlencode(query_hash)
+
+        response = self._send_process_request(query)
+
+        return response.content, response.status_code
+
+
+    def _send_process_request(self, query: str) -> 'Response':
+        return requests.post(f"{MARYTTS_URL}{MARYTTS_PROCESS_ENDPOINT}?{query}")
