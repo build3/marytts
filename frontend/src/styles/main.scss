@@ -1,3 +1,17 @@
-h1 {
-    color: red;
+@import "~bulma/bulma.sass";
+
+body {
+    .navbar {
+        background-color: $primary;
+        .navbar-brand {
+            h1 {
+                color: #FFF;
+                font-weight: bold;
+            }
+        }
+    }
+
+    audio {
+        width: 100%;
+    }
 }
