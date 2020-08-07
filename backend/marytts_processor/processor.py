@@ -10,7 +10,7 @@ that the variable maybe either list or dict.
 import json
 import re
 
-from typing import Any, Iterator, Tuple, Union
+from typing import Any, Iterator, Optional, Tuple, Union
 
 import xmltodict
 
@@ -33,32 +33,41 @@ class MaryTTSXMLProcessor:
         self.total_duration = 0 ### Total duration in ms used to calculate time percantage of duration.
         self.previous_hertz = 22 ### Last known hertz value.
 
-        parsed_xml = xmltodict.parse(xml.decode('utf-8'))
-        self.sentences: MaryXmlUnion = parsed_xml['maryxml']['p']['s']
+        self.parsed_xml = xmltodict.parse(xml.decode('utf-8'))
+        self.sentences: MaryXmlUnion = self.parsed_xml['maryxml']['p']['s']
 
     def process(self) -> str:
+        # return json.dumps(self.parsed_xml)
         if self._is_complex():
             for sentence in self.sentences:
-                phrases_tokens = self._get_phrases_from_prosody(sentence['prosody'])
+                phrases_tokens = self._get_phrases_from_sentence(sentence)
                 self._serialize_phrases(phrases_tokens)
         else:
-            phrases_tokens = self._get_phrases_from_not_complex_word()
+            phrases_tokens = self._get_phrases_from_sentence(self.sentences)
             self._serialize_phrases(phrases_tokens)
 
         return json.dumps(self.data)
 
     def _is_complex(self) -> bool:
         """
-        Check if text processed from the client is complex.
-        Text is context only if posses more than one sentence.
+        Check if text processed from the client is
+        complex i.e. s property is a list.
         """
         return isinstance(self.sentences, list)
 
-    def _get_phrases_from_not_complex_word(self):
-        if 'prosody' in self.sentences:
-            return self._get_phrases_from_prosody(self.sentences['prosody'])
+    def _get_phrases_from_sentence(self, sentence: dict) -> list:
+        if 'prosody' in sentence:
+            return self._get_phrases_from_prosody(sentence['prosody'])
 
-        return self._get_phrase_token(self.sentences['phrase'])
+        if 'phrase' in sentence:
+            tokens = self._get_phrase_token(sentence['phrase'])
+
+            if isinstance(tokens, tuple):
+                return list(_flatten([tokens[0], tokens[1]]))
+
+            return tokens
+
+        return []
 
     def _get_phrases_from_prosody(self, prosody: MaryXmlUnion) -> list:
         """
@@ -68,18 +77,29 @@ class MaryTTSXMLProcessor:
         prosody or take one  phrase from the object.
         """
         if isinstance(prosody, list):
-            return [
-                self._get_phrase_token(single_prosody['phrase'])
+            return list(_flatten([
+                list(self._get_phrase_token(single_prosody['phrase']))
                 for single_prosody in prosody
-            ]
+            ]))
 
-        return self._get_phrase_token(prosody['phrase'])
+        tokens = self._get_phrase_token(prosody['phrase'])
 
-    def _get_phrase_token(self, phrase: dict):
+        if isinstance(tokens, tuple):
+            return list(_flatten([tokens[0], tokens[1]]))
+
+        return tokens
+
+    def _get_phrase_token(self, phrase: dict) -> Union[MaryXmlUnion, Tuple]:
         """
         To obtain the phonemes from the phrases I need
         to first get to the phrase tokens in the XML.
         """
+        if 'mtu' in phrase and 't' in phrase:
+            try:
+                return phrase['t'], phrase['mtu']['t']
+            except TypeError:
+                return phrase['t'], [mtu['t'] for mtu in phrase['mtu']]
+
         if 'mtu' in phrase:
             return phrase['mtu']['t']
 
@@ -157,14 +177,16 @@ class MaryTTSXMLProcessor:
         """
         f0 = phoneme.get('@f0')
         duration = int(phoneme['@d'])
+        phoneme_name = phoneme['@p']
+
 
         if not f0:
-            f0_hertz_with_ms = [self._empty_phoneme(duration)]
+            f0_hertz_with_ms = [self._empty_phoneme(duration, phoneme_name)]
         else:
             f0_pairs = self._split_phoneme_pairs(f0)
 
             f0_hertz_with_ms = [
-                self._phoneme_dict(pair, duration)
+                self._phoneme_dict(pair, duration, phoneme_name)
                 for pair in f0_pairs
             ]
 
@@ -172,7 +194,7 @@ class MaryTTSXMLProcessor:
 
         return f0_hertz_with_ms
 
-    def _empty_phoneme(self, duration: int) -> dict:
+    def _empty_phoneme(self, duration: int, phoneme_name: str) -> dict:
         """
         This is used when there is no f0 property in the ph in the XML.
         As there is no f0 I don't have information about time percentage
@@ -182,7 +204,8 @@ class MaryTTSXMLProcessor:
         """
         return {
             'ms': duration + self.total_duration,
-            'hertz': self.previous_hertz
+            'hertz': self.previous_hertz,
+            'phoneme_name': phoneme_name,
         }
 
     def _split_phoneme_pairs(self, f0: str) -> list:
@@ -198,7 +221,7 @@ class MaryTTSXMLProcessor:
         """
         return list(filter(None, re.split("(\(\d+,\d+\))", f0)))
 
-    def _phoneme_dict(self, pair: str, duration: int) -> dict:
+    def _phoneme_dict(self, pair: str, duration: int, phoneme_name: str) -> dict:
         """
         Returns dict with ms and Hz value from phoneme
         from the specific moment in time.
@@ -214,4 +237,5 @@ class MaryTTSXMLProcessor:
         return {
             'ms': int(ms),
             'hertz': hertz,
+            'phoneme_name': phoneme_name,
         }
