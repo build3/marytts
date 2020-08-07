@@ -1,9 +1,5 @@
-import logging
-import json
 import re
 from typing import Any, Tuple
-
-import xmltodict
 
 from .marytts import MaryTTSRepository
 from .processor import MaryTTSXMLProcessor
