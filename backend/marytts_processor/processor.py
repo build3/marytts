@@ -5,6 +5,35 @@ thing which I wanted to make you aware is that most of
 fields in the XML may occur as list of objects or single object.
 Cause of that I introduced new `MaryXmlUnion` type which signals
 that the variable maybe either list or dict.
+
+Structure of processed XML looks as follows:
+
+{
+    "phrases": [
+        {
+            "phrase": "' l O - r @ m",
+            "text": "Lorem",
+            "phonemes": [
+                {
+                    "ms": 4,
+                    "hertz": 134,
+                    "phoneme_name": "l"
+                },
+                {
+                    "ms": 9,
+                    "hertz": 134,
+                    "phoneme_name": "l"
+                },
+                {
+                    "ms": 15,
+                    "hertz": 134,
+                    "phoneme_name": "l"
+                }
+            ]
+        },
+        ...
+    ]
+}
 """
 
 import json
@@ -74,7 +103,7 @@ class MaryTTSXMLProcessor:
         The prosody field is not required to be in the XML but if it
         occurs it can occurs as list of objects or single object.
         So I either have to iterate through all the phrases in the
-        prosody or take one  phrase from the object.
+        prosody or take one phrase from the object.
         """
         if isinstance(prosody, list):
             return list(_flatten([
@@ -92,7 +121,10 @@ class MaryTTSXMLProcessor:
     def _get_phrase_token(self, phrase: dict) -> Union[MaryXmlUnion, Tuple]:
         """
         To obtain the phonemes from the phrases I need
-        to first get to the phrase tokens in the XML.
+        to first get to the phrase tokens in the XML. The mtu property
+        like everything else in the XML may appear as object or list
+        of object so I'm using TypeError to prevent the exception
+        when I want to get token from mtu.
         """
         if 'mtu' in phrase and 't' in phrase:
             try:
