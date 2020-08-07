@@ -211,7 +211,6 @@ class MaryTTSXMLProcessor:
         duration = int(phoneme['@d'])
         phoneme_name = phoneme['@p']
 
-
         if not f0:
             f0_hertz_with_ms = [self._empty_phoneme(duration, phoneme_name)]
         else:
