@@ -8,7 +8,8 @@
     "build": "webpack --env.prod"
   },
   "dependencies": {
-    "vue": "^3.0.0-rc.5"
+    "vue": "^3.0.0-rc.5",
+    "vuex": "^4.0.0-beta.4"
   },
   "devDependencies": {
     "@vue/compiler-sfc": "^3.0.0-rc.5",

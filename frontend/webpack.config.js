@@ -1,4 +1,5 @@
 const path = require('path')
+const webpack = require('webpack');
 const { VueLoaderPlugin } = require('vue-loader')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -44,6 +45,9 @@ module.exports = (env = {}) => ({
       filename: 'index.html',
       template: 'src/index.html',
       inject: true
+    }),
+    new webpack.DefinePlugin({
+      'process.env.VUE_APP_API_URL': JSON.stringify(process.env.VUE_APP_API_URL),
     }),
   ],
   devServer: {

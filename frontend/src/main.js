@@ -1,8 +1,10 @@
-import { createApp, toHandlers } from "vue";
+import { createApp } from "vue";
 import App from './App.vue';
+import store from './store';
 
 import './styles/main.scss';
 
-const app = createApp(App)
+const app = createApp(App);
 
+app.use(store);
 app.mount("#app");
