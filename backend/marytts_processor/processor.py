@@ -62,11 +62,10 @@ class MaryTTSXMLProcessor:
         self.total_duration = 0 ### Total duration in ms used to calculate time percantage of duration.
         self.previous_hertz = 22 ### Last known hertz value.
 
-        self.parsed_xml = xmltodict.parse(xml.decode('utf-8'))
-        self.sentences: MaryXmlUnion = self.parsed_xml['maryxml']['p']['s']
+        parsed_xml = xmltodict.parse(xml.decode('utf-8'))
+        self.sentences: MaryXmlUnion = parsed_xml['maryxml']['p']['s']
 
     def process(self) -> str:
-        # return json.dumps(self.parsed_xml)
         if self._is_complex():
             for sentence in self.sentences:
                 phrases_tokens = self._get_phrases_from_sentence(sentence)
