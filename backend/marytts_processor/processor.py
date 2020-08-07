@@ -124,7 +124,7 @@ class MaryTTSXMLProcessor:
         to first get to the phrase tokens in the XML. The mtu property
         like everything else in the XML may appear as object or list
         of object so I'm using TypeError to prevent the exception
-        when I want to get token from mtu.
+        when I want to get token or tokens from mtu.
         """
         if 'mtu' in phrase and 't' in phrase:
             try:
