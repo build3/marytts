@@ -63,6 +63,8 @@ class MaryTTSXMLProcessor:
         In this case I just add whole duration and total duration to
         obtain point in time.
         """
+        # If total duration is 0 then pass 0ms to the client so the chart
+        # can be built from 0ms.
         if self.total_duration != 0:
             ms = duration + self.total_duration
 
@@ -103,6 +105,9 @@ class MaryTTSXMLProcessor:
             ms = duration * (int(time_percentage) / 100) + self.total_duration
 
         else:
+            # MaryTTS always starts with 4 ms so I substract
+            # the duration so the client will start
+            # drawing chart with 0ms.
             ms = duration * (int(time_percentage) / 100) - 4
 
         return {
