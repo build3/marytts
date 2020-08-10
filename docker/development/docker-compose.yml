@@ -21,6 +21,8 @@ services:
       - "59125:59125"
 
   mtts-frontend:
+    environment:
+      - VUE_APP_API_URL=http://localhost:8000
     restart: "no"
     image: node:12
     ports:
