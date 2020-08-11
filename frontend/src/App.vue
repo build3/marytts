@@ -7,17 +7,16 @@
             </div>
     </nav>
     <section>
-        <div class="columns">
-            <div class="column my-2 ml-2">
-                <textarea class="textarea has-fixed-size" placeholder="Insert your text here"
-                    rows="30" v-model="userText" />
-                <button class="button has-text-weight-bold is-primary mt-2 is-fullwidth"
-                    :class="toggleLoader"
-                    :disabled="generateButtonDisabled"
-                    @click="generateAudio">Generate audio</button>
-            </div>
-            <div class="column my-2 mr-2">
+        <div class="columns mt-2 is-mobile is-centered">
+            <div class="column is-half">
                 <div class="field">
+                    <div class="control">
+                        <input class="input is-primary" type="text"
+                            placeholder="Insert your text here" v-model="userText">
+                    </div>
+                </div>
+
+                <div class="field mt-2">
                     <div class="control">
                         <div class="select is-fullwidth is-primary">
                             <select v-model="selectedVoice">
@@ -29,6 +28,12 @@
                         </div>
                     </div>
                 </div>
+
+                <button class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
+                    :class="toggleLoader"
+                    :disabled="generateButtonDisabled"
+                    @click="generateAudio">Generate audio</button>
+
                 <audio v-if="stream" :src="stream" autoplay="true" controls="" type="audio/wave"></audio>
             </div>
         </div>

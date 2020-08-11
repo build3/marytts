@@ -34,10 +34,16 @@ const mutations = {
     setStream(state, newStream) {
         state.stream = newStream;
     },
+
+    clearStream(state) {
+        state.stream = null;
+    },
 }
 
 const actions = {
     audioStream ({ commit, state }, userData) {
+        commit('clearStream');
+
         const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice.value);
 
         if (selectedSpeechVoice) {
@@ -72,7 +78,7 @@ const actions = {
 const getters = {
     toggleLoader(state) {
         return state.runLoader ? 'is-loading': '';
-    }
+    },
 }
 
 export default createStore({

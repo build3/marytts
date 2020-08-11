@@ -13,5 +13,12 @@ body {
 
     audio {
         width: 100%;
+        height: 2.6em;
+    }
+
+    .columns {
+        .column {
+            margin-top: 30vh;
+        }
     }
 }
