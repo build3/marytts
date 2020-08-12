@@ -8,6 +8,7 @@
     "build": "webpack --env.prod"
   },
   "dependencies": {
+    "chart.js": "^2.9.3",
     "vue": "^3.0.0-rc.5",
     "vuex": "^4.0.0-beta.4"
   },

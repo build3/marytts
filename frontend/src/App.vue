@@ -35,17 +35,22 @@
                     @click="generateAudio">Generate audio</button>
 
                 <audio v-if="stream" :src="stream" autoplay="true" controls="" type="audio/wave"></audio>
+                <canvas id="myChart" width="400" height="400"></canvas>
             </div>
         </div>
     </section>
 </template>
 <script>
+import Chart from "chart.js";
+
 import { ref, watch, computed } from "vue";
 import { useStore } from "vuex";
 
 export default {
     setup () {
         const store = useStore();
+
+        const chartName = "myChart";
 
         const voiceTypes = computed(() => store.state.voiceSet);
         const stream = computed(() => store.state.stream);
@@ -58,6 +63,40 @@ export default {
             store.dispatch('audioStream', {
                 selectedVoice,
                 userText
+            });
+
+            generateChart();
+        };
+
+        const generateChart = () => {
+            new Chart(chartName, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        fill: false,
+                        label: '',
+                        data: [0, -12, 19, 3, 5, 2, 3],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: ''
+                            }
+                        }],
+
+                        xAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: ''
+                            }
+                        }]
+                    }
+                }
             });
         };
 
