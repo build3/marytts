@@ -2,7 +2,10 @@ import { createStore } from 'vuex';
 
 const state = {
     stream: null,
+    phonemes: null,
     runLoader: false,
+    msPoints: null,
+    hertzPoints: null,
     voiceSet: [
         { id:1, locale: 'te', type: 'cmu-nk-hsmm', sex: 'female'},
         { id:2, locale: 'sv', type: 'stts-sv-hb-hsmm', sex: 'male'},
@@ -38,10 +41,20 @@ const mutations = {
     clearStream(state) {
         state.stream = null;
     },
+
+    setPoints(state, [ms, hertz]) {
+        state.msPoints = ms;
+        state.hertzPoints = hertz;
+    },
+
+    clearPhonemesData(state) {
+        state.msPoints = null;
+        state.hertzPoints = null;
+    }
 }
 
 const actions = {
-    audioStream ({ commit, state }, userData) {
+    async audioStream ({ commit, state }, userData) {
         commit('clearStream');
 
         const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice.value);
@@ -71,6 +84,39 @@ const actions = {
                 reader.readAsDataURL(blob);
                 commit('bindLoader');
             });
+        }
+    },
+
+    graphPhonemes({ commit, state }, userData) {
+        commit('clearPhonemesData');
+        const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice.value);
+
+        if (selectedSpeechVoice) {
+            const { type, locale } = selectedSpeechVoice;
+
+
+            const requestData = {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    input_text: userData.userText.value,
+                    locale: locale,
+                    voice: type
+                })
+            };
+
+            return fetch(process.env.VUE_APP_API_URL+"/phonemes", requestData)
+                .then(response =>  response.json())
+                .then(data => {
+                    const points = data.reduce((acc, { ms, hertz }) => {
+                        acc[0].push(ms);
+                        acc[1].push(hertz);
+
+                        return acc
+                    }, [[], []]);
+
+                    commit('setPoints', points);
+                })
         }
     },
 }

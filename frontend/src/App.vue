@@ -56,11 +56,21 @@ export default {
         const stream = computed(() => store.state.stream);
         const toggleLoader = computed(() => store.getters.toggleLoader);
 
+        const chartPhonemes = computed(() => store.state.phonemes);
+
+        const msPoints = computed(() => store.state.msPoints);
+        const hertzPoints = computed(() => store.state.hertzPoints);
+
         const userText = ref('');
         const selectedVoice = ref(null);
 
-        const generateAudio = () => {
-            store.dispatch('audioStream', {
+        const generateAudio = async () => {
+            await store.dispatch('audioStream', {
+                selectedVoice,
+                userText
+            });
+
+            await store.dispatch('graphPhonemes', {
                 selectedVoice,
                 userText
             });
@@ -72,11 +82,11 @@ export default {
             new Chart(chartName, {
                 type: 'line',
                 data: {
-                    labels: [],
+                    labels: msPoints.value,
                     datasets: [{
                         fill: false,
                         label: '',
-                        data: [0, -12, 19, 3, 5, 2, 3],
+                        data: hertzPoints.value,
                         borderWidth: 2
                     }]
                 },
