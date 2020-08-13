@@ -35,13 +35,15 @@
                     @click="generateAudio">Generate audio</button>
 
                 <audio v-if="stream" :src="stream" autoplay="true" controls="" type="audio/wave"></audio>
-                <canvas id="myChart" width="400" height="400"></canvas>
             </div>
+        </div>
+        <div class="chart-size">
+            <canvas id="phonemesWave"></canvas>
         </div>
     </section>
 </template>
 <script>
-import Chart from "chart.js";
+import getChartGenerator from "./assets/scripts/phonemesChart.js";
 
 import { ref, watch, computed } from "vue";
 import { useStore } from "vuex";
@@ -50,19 +52,19 @@ export default {
     setup () {
         const store = useStore();
 
-        const chartName = "myChart";
+        const chartColor = "#00d1b2";
 
         const voiceTypes = computed(() => store.state.voiceSet);
         const stream = computed(() => store.state.stream);
         const toggleLoader = computed(() => store.getters.toggleLoader);
 
-        const chartPhonemes = computed(() => store.state.phonemes);
-
-        const msPoints = computed(() => store.state.msPoints);
+        const phonemeNames = computed(() => store.state.phonemeNames);
         const hertzPoints = computed(() => store.state.hertzPoints);
 
         const userText = ref('');
         const selectedVoice = ref(null);
+
+        const generateChart = getChartGenerator();
 
         const generateAudio = async () => {
             await store.dispatch('audioStream', {
@@ -75,39 +77,7 @@ export default {
                 userText
             });
 
-            generateChart();
-        };
-
-        const generateChart = () => {
-            new Chart(chartName, {
-                type: 'line',
-                data: {
-                    labels: msPoints.value,
-                    datasets: [{
-                        fill: false,
-                        label: '',
-                        data: hertzPoints.value,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    scales: {
-                        yAxes: [{
-                            scaleLabel: {
-                                display: true,
-                                labelString: ''
-                            }
-                        }],
-
-                        xAxes: [{
-                            scaleLabel: {
-                                display: true,
-                                labelString: ''
-                            }
-                        }]
-                    }
-                }
-            });
+            generateChart(phonemeNames, hertzPoints, chartColor);
         };
 
         const generateButtonDisabled = computed(() => !selectedVoice.value || !userText.value);

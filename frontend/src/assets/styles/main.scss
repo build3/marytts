@@ -18,7 +18,14 @@ body {
 
     .columns {
         .column {
-            margin-top: 30vh;
+            margin-top: .5em;
         }
+    }
+
+    .chart-size {
+        margin: 0 auto;
+        position: relative;
+        width: 95vw;
+        height: 65vh;
     }
 }

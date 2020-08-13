@@ -2,9 +2,8 @@ import { createStore } from 'vuex';
 
 const state = {
     stream: null,
-    phonemes: null,
     runLoader: false,
-    msPoints: null,
+    phonemeNames: null,
     hertzPoints: null,
     voiceSet: [
         { id:1, locale: 'te', type: 'cmu-nk-hsmm', sex: 'female'},
@@ -42,19 +41,19 @@ const mutations = {
         state.stream = null;
     },
 
-    setPoints(state, [ms, hertz]) {
-        state.msPoints = ms;
+    setPoints(state, [phoneme_name, hertz]) {
+        state.phonemeNames = phoneme_name;
         state.hertzPoints = hertz;
     },
 
     clearPhonemesData(state) {
-        state.msPoints = null;
+        state.phonemeNames = null;
         state.hertzPoints = null;
     }
 }
 
 const actions = {
-    async audioStream ({ commit, state }, userData) {
+    audioStream ({ commit, state }, userData) {
         commit('clearStream');
 
         const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice.value);
@@ -62,38 +61,6 @@ const actions = {
         if (selectedSpeechVoice) {
             commit('bindLoader');
             const { type, locale } = selectedSpeechVoice;
-
-
-        const requestData = {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                input_text: userData.userText.value,
-                locale: locale,
-                voice: type
-            })
-        };
-
-        fetch(process.env.VUE_APP_API_URL+"/audio-voice", requestData)
-            .then(response => response.blob())
-            .then(blob => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    commit('setStream', reader.result);
-                };
-                reader.readAsDataURL(blob);
-                commit('bindLoader');
-            });
-        }
-    },
-
-    graphPhonemes({ commit, state }, userData) {
-        commit('clearPhonemesData');
-        const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice.value);
-
-        if (selectedSpeechVoice) {
-            const { type, locale } = selectedSpeechVoice;
-
 
             const requestData = {
                 method: "POST",
@@ -105,16 +72,65 @@ const actions = {
                 })
             };
 
-            return fetch(process.env.VUE_APP_API_URL+"/phonemes", requestData)
+            fetch(`${process.env.VUE_APP_API_URL}/audio-voice`, requestData)
+                .then(response => response.blob())
+                .then(blob => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        commit('setStream', reader.result);
+                    };
+                    reader.readAsDataURL(blob);
+                    commit('bindLoader');
+                });
+            }
+    },
+
+    graphPhonemes({ commit, state }, userData) {
+        commit('clearPhonemesData');
+        const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice.value);
+
+        if (selectedSpeechVoice) {
+            const { type, locale } = selectedSpeechVoice;
+
+            const requestData = {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    input_text: userData.userText.value,
+                    locale: locale,
+                    voice: type
+                })
+            };
+
+            return fetch(`${process.env.VUE_APP_API_URL}/phonemes`, requestData)
                 .then(response =>  response.json())
                 .then(data => {
-                    const points = data.reduce((acc, { ms, hertz }) => {
-                        acc[0].push(ms);
-                        acc[1].push(hertz);
+                    const points = data.reduce((acc, { phoneme_name, hertz }) => {
+                        const [lastPhoneme] = acc[0].slice(-1);
+                        const [lastHertz] = acc[1].slice(-1);
+                        const [nextPhoneme] = acc[0].filter(phoneme => phoneme !== '').slice(-1)
 
-                        return acc
+                        const isLastHertz = lastHertz === hertz;
+                        const isLastPhoneme = lastPhoneme === phoneme_name;
+                        const isNextPhoneme = nextPhoneme === phoneme_name;
+
+                        if (!isLastHertz || !isLastPhoneme) {
+                            if (isNextPhoneme) {
+                                return [
+                                    [...acc[0], ''],
+                                    [...acc[1], hertz],
+                                ]
+                            }
+
+                            return [
+                                [...acc[0], phoneme_name],
+                                [...acc[1], hertz],
+                            ]
+                        }
+
+                        return acc;
                     }, [[], []]);
-
+                    
                     commit('setPoints', points);
                 })
         }
