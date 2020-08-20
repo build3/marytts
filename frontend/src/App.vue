@@ -37,9 +37,14 @@
                 <audio v-if="stream" :src="stream" autoplay="true" controls="" type="audio/wave"></audio>
             </div>
         </div>
+        <div class="chart-size">
+            <canvas id="phonemesWave"></canvas>
+        </div>
     </section>
 </template>
 <script>
+import getChartGenerator from "./assets/scripts/phonemesChart.js";
+
 import { ref, watch, computed } from "vue";
 import { useStore } from "vuex";
 
@@ -47,18 +52,32 @@ export default {
     setup () {
         const store = useStore();
 
+        const chartColor = "#00d1b2";
+
         const voiceTypes = computed(() => store.state.voiceSet);
         const stream = computed(() => store.state.stream);
         const toggleLoader = computed(() => store.getters.toggleLoader);
 
+        const phonemeNames = computed(() => store.state.phonemeNames);
+        const hertzPoints = computed(() => store.state.hertzPoints);
+
         const userText = ref('');
         const selectedVoice = ref(null);
 
-        const generateAudio = () => {
-            store.dispatch('audioStream', {
+        const generateChart = getChartGenerator();
+
+        const generateAudio = async () => {
+            await store.dispatch('audioStream', {
                 selectedVoice,
                 userText
             });
+
+            await store.dispatch('graphPhonemes', {
+                selectedVoice,
+                userText
+            });
+
+            generateChart(phonemeNames, hertzPoints, chartColor);
         };
 
         const generateButtonDisabled = computed(() => !selectedVoice.value || !userText.value);
