@@ -24,6 +24,9 @@ const getChartGenerator = () => {
             },
             options: {
                 maintainAspectRatio: false,
+                legend: {
+                    display: false,
+                },
                 scales: {
                     yAxes: [{
                         scaleLabel: {
