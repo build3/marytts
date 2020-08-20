@@ -8,6 +8,6 @@ To run project for development you should execute following command:
 docker-compose -f docker/development/docker-compose.yml up --build
 ```
 
-This will spawn 3 containers. One for frontend application.
+This will spawn 3 containers. One for frontend application at `localhost:8080`,
 Second for backend application at `localhost:8000` and
 third for MaryTTS server at `localhost:59125`.
