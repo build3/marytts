@@ -1,6 +1,6 @@
 from flask import abort, Blueprint, Response, request
 
-from marytts_processor import process_phonemes, process_voice_output
+from marytts_processor import get_xml, process_phonemes, process_voice_output
 
 
 gateway_bp = Blueprint('mtts', __name__)
@@ -33,13 +33,18 @@ def get_phonemes():
     return Response(data, mimetype='application/json', status=status)
 
 
-@gateway_bp.route('/phonemes', methods=['POST'])
+@gateway_bp.route('/phonemes/xml', methods=['GET'])
 def get_xml_from_marytts():
-    text = request.json.get('input_text')
-    locale = request.json.get('locale', 'en_US')
-    voice = request.json.get('voice', 'cmu-bdl-hsmm')
+    text = request.args.get('input_text')
+    locale = request.args.get('locale', 'en_US')
+    voice = request.args.get('voice', 'cmu-bdl-hsmm')
 
     if not text:
         abort(400, 'input_text property is required')
 
-    return Response(data, mimetype='application/xml', status=status)
+    data, status, mimetype = get_xml(text, locale, voice)
+
+    response = Response(data, mimetype=mimetype, status=status)
+    response.headers['Content-Disposition'] = f'attachment; filename=marytts.xml'
+
+    return response
