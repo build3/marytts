@@ -141,6 +141,17 @@ const getters = {
     toggleLoader(state) {
         return state.runLoader ? 'is-loading': '';
     },
+
+    maryttsXmlUrl: (state) => (text, selectedVoice) => {
+        if (!selectedVoice || text === '') {
+            return '';
+        }
+
+        const { type, locale } = state.voiceSet.find(voice => voice.id === selectedVoice);
+
+        return `${process.env.VUE_APP_API_URL}/phonemes/xml?input_text=${text}
+            &locale=${locale}&voice=${type}`;
+    },
 }
 
 export default createStore({
