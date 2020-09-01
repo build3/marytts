@@ -9,5 +9,5 @@ class BaseMaryTTSRepository(object):
     def load_acoustic_params(self, text: str, locale: str, voice: str) -> Tuple[bytes, int, str]:
         raise NotImplementedError
 
-    def voice_output_from_xml(self, xml: str) -> Tuple[bytes, str, int]:
+    def voice_output_from_xml(self, xml: str, locale: str, voice: str) -> Tuple[bytes, str, int]:
         raise NotImplementedError
