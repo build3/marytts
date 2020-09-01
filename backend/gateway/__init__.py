@@ -37,10 +37,13 @@ def get_phonemes():
 def get_voice_output_from_xml():
     xml_file = request.files.get('xml')
 
+    locale = request.form.get('locale', 'en_US')
+    voice = request.form.get('voice', 'cmu-bdl-hsmm')
+
     if not xml_file:
         abort(400, {"xml": ["XML file is required."]})
 
     xml = xml_file.read().decode('utf-8')
 
-    content, mimetype, status = process_voice_output_from_xml(xml)
+    content, mimetype, status = process_voice_output_from_xml(xml, locale, voice)
     return Response(content, mimetype=mimetype, status=status)

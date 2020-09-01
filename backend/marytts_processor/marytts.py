@@ -45,10 +45,12 @@ class MaryTTSRepository(BaseMaryTTSRepository):
 
         return response.content, response.status_code
 
-    def voice_output_from_xml(self, xml: str) -> Tuple[bytes, str, int]:
+    def voice_output_from_xml(self, xml: str, locale: str, voice: str) -> Tuple[bytes, str, int]:
         query_hash = {
             "INPUT_TEXT": xml,
             "INPUT_TYPE": "ACOUSTPARAMS",
+            "LOCALE": locale,
+            "VOICE": voice,
             "OUTPUT_TYPE": "AUDIO",
             "AUDIO": "WAVE",
         }
