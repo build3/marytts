@@ -1,6 +1,6 @@
 from flask import abort, Blueprint, Response, request
 
-from marytts_processor import process_phonemes, process_voice_output, process_voice_output_from_xml
+from marytts_processor import *
 
 
 gateway_bp = Blueprint('mtts', __name__)
@@ -47,3 +47,14 @@ def get_voice_output_from_xml():
 
     content, mimetype, status = process_voice_output_from_xml(xml, locale, voice)
     return Response(content, mimetype=mimetype, status=status)
+
+
+@gateway_bp.route('/xml/phonemes', methods=['POST'])
+def get_phonemes_from_xml():
+    xml_file = request.files.get('xml')
+
+    if not xml_file:
+        abort(400, {"xml": ["XML file is required."]})
+
+    data, status = process_phonemes_from_xml(xml_file.read())
+    return Response(data, mimetype='application/json', status=status)
