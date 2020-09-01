@@ -29,10 +29,22 @@
                     </div>
                 </div>
 
-                <button class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
-                    :class="toggleLoader"
-                    :disabled="generateButtonDisabled"
-                    @click="generateAudio">Generate audio</button>
+                <div class="columns">
+                    <div class="column is-half">
+                        <button class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
+                            :class="toggleLoader"
+                            :disabled="generateButtonDisabled"
+                            @click="generateAudio">Generate audio</button>
+                    </div>
+                    <div class="column is-half">
+                        <a :href="xmlUrl(userText, selectedVoice)">
+                            <button
+                                class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
+                                :disabled="generateButtonDisabled"
+                                >Export XML</button>
+                        </a>
+                    </div>
+                </div>
 
                 <audio v-if="stream" :src="stream" autoplay="true" controls="" type="audio/wave"></audio>
             </div>
@@ -82,6 +94,8 @@ export default {
 
         const generateButtonDisabled = computed(() => !selectedVoice.value || !userText.value);
 
+        const xmlUrl = computed(() => store.getters.maryttsXmlUrl);
+
         return {
             stream,
             generateAudio,
@@ -90,6 +104,7 @@ export default {
             voiceTypes,
             toggleLoader,
             generateButtonDisabled,
+            xmlUrl,
         }
     },
 };

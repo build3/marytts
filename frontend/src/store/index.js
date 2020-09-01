@@ -149,8 +149,8 @@ const getters = {
 
         const { type, locale } = state.voiceSet.find(voice => voice.id === selectedVoice);
 
-        return `${process.env.VUE_APP_API_URL}/phonemes/xml?input_text=${text}
-            &locale=${locale}&voice=${type}`;
+        return `${process.env.VUE_APP_API_URL}/phonemes/xml?input_text=${text}`
+            + `&locale=${locale}&voice=${type}`;
     },
 }
 
