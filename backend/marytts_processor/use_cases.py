@@ -29,3 +29,16 @@ def process_phonemes(
     processor = MaryTTSXMLProcessor(content)
 
     return processor.process(), status_code
+
+
+def process_voice_output_from_xml(
+    xml: str,
+    locale: str,
+    voice: str,
+    repository: BaseMaryTTSRepository = MaryTTSRepository()
+) -> Tuple[bytes, str, int]:
+    return repository.voice_output_from_xml(xml, locale, voice)
+
+
+def process_phonemes_from_xml(xml: bytes) -> Tuple[bytes, str, int]:
+    return MaryTTSXMLProcessor(xml).process(), 200
