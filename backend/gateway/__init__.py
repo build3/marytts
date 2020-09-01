@@ -2,6 +2,8 @@ from flask import abort, Blueprint, Response, request
 
 from marytts_processor import get_xml, process_phonemes, process_voice_output
 
+from .forms import MaryTTSForm
+
 
 gateway_bp = Blueprint('mtts', __name__)
 
@@ -35,14 +37,12 @@ def get_phonemes():
 
 @gateway_bp.route('/phonemes/xml', methods=['GET'])
 def get_xml_from_marytts():
-    text = request.args.get('input_text')
-    locale = request.args.get('locale', 'en_US')
-    voice = request.args.get('voice', 'cmu-bdl-hsmm')
+    form = MaryTTSForm(request.args, meta={'csrf': False})
 
-    if not text:
-        abort(400, 'input_text property is required')
+    if not form.validate():
+        abort(400, form.errors)
 
-    data, status, mimetype = get_xml(text, locale, voice)
+    data, status, mimetype = get_xml(form.data['input_text'], form.data['locale'], form.data['voice'])
 
     response = Response(data, mimetype=mimetype, status=status)
     response.headers['Content-Disposition'] = f'attachment; filename=marytts.xml'
