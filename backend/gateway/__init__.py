@@ -16,7 +16,7 @@ def get_voice_output():
     if not form.validate():
         abort(400, form.errors)
 
-    content, mimetype, status = process_voice_output(form.data['input_text'], form.data['locale'], form.data['voice'])
+    content, mimetype, status = process_voice_output(*_get_form_data(form))
     return Response(content, mimetype=mimetype, status=status)
 
 
@@ -27,7 +27,7 @@ def get_phonemes():
     if not form.validate():
         abort(400, form.errors)
 
-    data, status = process_phonemes(form.data['input_text'], form.data['locale'], form.data['voice'])
+    data, status = process_phonemes(*_get_form_data(form))
 
     return Response(data, mimetype='application/json', status=status)
 
@@ -39,9 +39,13 @@ def get_xml_from_marytts():
     if not form.validate():
         abort(400, form.errors)
 
-    data, status, mimetype = get_xml(form.data['input_text'], form.data['locale'], form.data['voice'])
+    data, status, mimetype = get_xml(*_get_form_data(form))
 
     response = Response(data, mimetype=mimetype, status=status)
     response.headers['Content-Disposition'] = f'attachment; filename=marytts.xml'
 
     return response
+
+
+def _get_form_data(form: MaryTTSForm) -> tuple:
+    return form.data['input_text'], form.data['locale'], form.data['voice']
