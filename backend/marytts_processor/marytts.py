@@ -45,5 +45,19 @@ class MaryTTSRepository(BaseMaryTTSRepository):
 
         return response.content, response.status_code
 
+    def voice_output_from_xml(self, xml: str) -> Tuple[bytes, str, int]:
+        query_hash = {
+            "INPUT_TEXT": xml,
+            "INPUT_TYPE": "ACOUSTPARAMS",
+            "OUTPUT_TYPE": "AUDIO",
+            "AUDIO": "WAVE",
+        }
+
+        query = urlencode(query_hash)
+
+        response = self._send_process_request(query)
+
+        return response.content, response.headers['Content-Type'], response.status_code 
+
     def _send_process_request(self, query: str) -> 'Response':
         return requests.post(f"{MARYTTS_URL}{MARYTTS_PROCESS_ENDPOINT}?{query}")
