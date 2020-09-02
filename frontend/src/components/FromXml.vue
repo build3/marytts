@@ -34,8 +34,8 @@ export default {
 
         const xmlFile = ref(null);
 
-        const swapFile = ((file) => {
-            xmlFile.value = file.target.files[0];
+        const swapFile = ((event) => {
+            xmlFile.value = event.target.files[0];
         });
 
         const generateButtonDisabled = computed(() => !xmlFile.value);
