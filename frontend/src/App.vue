@@ -33,6 +33,10 @@
                     </div>
                 </div>
 
+                <div v-else-if="activeTab === xmlTab">
+                    <from-xml />
+                </div>
+
                 <div class="columns">
                     <div class="column is-half">
                         <button class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
