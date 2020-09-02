@@ -2,7 +2,9 @@
     <div>
         <div class="file is-centered">
             <label class="file-label">
-                <input class="file-input" type="file" name="resume">
+                <input class="file-input"
+                    type="file"
+                    @change="swapFile">
                 <span class="file-cta">
                     <span class="file-icon">
                         <font-awesome-icon icon="upload" />
@@ -17,9 +19,20 @@
 </template>
 
 <script>
+import { ref, watch, computed } from "vue";
+
 export default {
     setup() {
-        
+        const xmlFile = ref(null);
+
+        const swapFile = ((file) => {
+            xmlFile.value = file.target.files[0];
+        });
+
+        return {
+            xmlFile,
+            swapFile,
+        }
     }
 }
 </script>
