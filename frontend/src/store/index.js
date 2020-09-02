@@ -1,5 +1,8 @@
 import { createStore } from 'vuex';
 
+const textTab = 'text';
+const XMLTab = 'xml';
+
 const state = {
     stream: null,
     runLoader: false,
@@ -26,6 +29,7 @@ const state = {
         { id:17, locale: 'en_GB', type: 'dfki-obadiah-hsmm', sex: 'male'},
         { id:18, locale: 'ru', type: 'ac-irina-hsmm', sex: 'female'},
     ],
+    currentActiveTab: textTab,
 }
 
 const mutations = {
