@@ -34,10 +34,11 @@
 
                     <div class="columns">
                         <div class="column is-half">
-                            <button class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
-                                :class="toggleLoader"
-                                :disabled="generateButtonDisabled"
-                                @click="generateAudio">Generate audio</button>
+                            <audio-button
+                                :isXml="false"
+                                :shouldDisable="generateButtonDisabled"
+                                :actionArgs="{ selectedVoice, userText }"
+                            />
                         </div>
                         <div class="column is-half">
                             <a :href="xmlUrl(userText, selectedVoice)">
@@ -73,33 +74,11 @@ export default {
     setup () {
         const store = useStore();
 
-        const chartColor = "#00d1b2";
-
         const voiceTypes = computed(() => store.state.voiceSet);
         const stream = computed(() => store.state.stream);
-        const toggleLoader = computed(() => store.getters.toggleLoader);
-
-        const phonemeNames = computed(() => store.state.phonemeNames);
-        const hertzPoints = computed(() => store.state.hertzPoints);
 
         const userText = ref('');
         const selectedVoice = ref(null);
-
-        const generateChart = getChartGenerator();
-
-        const generateAudio = async () => {
-            await store.dispatch('audioStream', {
-                selectedVoice,
-                userText
-            });
-
-            await store.dispatch('graphPhonemes', {
-                selectedVoice,
-                userText
-            });
-
-            generateChart(phonemeNames, hertzPoints, chartColor);
-        };
 
         const generateButtonDisabled = computed(() => !selectedVoice.value || !userText.value);
 
@@ -109,11 +88,9 @@ export default {
 
         return {
             stream,
-            generateAudio,
             userText,
             selectedVoice,
             voiceTypes,
-            toggleLoader,
             generateButtonDisabled,
             xmlUrl,
             activeTab,

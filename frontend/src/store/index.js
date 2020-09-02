@@ -90,7 +90,7 @@ const actions = {
     audioStream ({ commit, state }, userData) {
         commit('clearStream');
 
-        const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice.value);
+        const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice);
 
         if (selectedSpeechVoice) {
             commit('bindLoader');
@@ -100,7 +100,7 @@ const actions = {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    input_text: userData.userText.value,
+                    input_text: userData.userText,
                     locale: locale,
                     voice: type
                 })
@@ -121,7 +121,7 @@ const actions = {
 
     graphPhonemes({ commit, state }, userData) {
         commit('clearPhonemesData');
-        const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice.value);
+        const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice);
 
         if (selectedSpeechVoice) {
             const { type, locale } = selectedSpeechVoice;
@@ -130,7 +130,7 @@ const actions = {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    input_text: userData.userText.value,
+                    input_text: userData.userText,
                     locale: locale,
                     voice: type
                 })
