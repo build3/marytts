@@ -29,7 +29,7 @@ class MaryTTSRepository(BaseMaryTTSRepository):
 
         return response.content, response.headers['Content-Type'], response.status_code
 
-    def load_acoustic_params(self, text: str, locale: str, voice: str) -> Tuple[bytes, int]:
+    def load_acoustic_params(self, text: str, locale: str, voice: str) -> Tuple[bytes, int, str]:
         query_hash = {
             "INPUT_TEXT": text,
             "INPUT_TYPE": "TEXT",
@@ -43,7 +43,7 @@ class MaryTTSRepository(BaseMaryTTSRepository):
 
         response = self._send_process_request(query)
 
-        return response.content, response.status_code
+        return response.content, response.status_code, response.headers['Content-Type']
 
     def voice_output_from_xml(self, xml: str, locale: str, voice: str) -> Tuple[bytes, str, int]:
         query_hash = {

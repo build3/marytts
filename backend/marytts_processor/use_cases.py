@@ -21,7 +21,7 @@ def process_phonemes(
     voice: str,
     repository: BaseMaryTTSRepository = MaryTTSRepository()
 ) -> Tuple[str, int]:
-    content, status_code = repository.load_acoustic_params(text, locale, voice)
+    content, status_code, _ = repository.load_acoustic_params(text, locale, voice)
 
     if not status_code == 200:
         return content.decode('utf-8'), status_code
@@ -29,6 +29,15 @@ def process_phonemes(
     processor = MaryTTSXMLProcessor(content)
 
     return processor.process(), status_code
+
+
+def get_xml(
+    text: str,
+    locale: str,
+    voice: str,
+    repository: BaseMaryTTSRepository = MaryTTSRepository()
+) -> Tuple[bytes, int, str]:
+    return repository.load_acoustic_params(text, locale, voice)
 
 
 def process_voice_output_from_xml(
