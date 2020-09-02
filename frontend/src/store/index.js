@@ -1,7 +1,7 @@
 import { createStore } from 'vuex';
 
-const textTab = 'text';
-const XMLTab = 'xml';
+export const textTab = 'text';
+export const xmlTab = 'xml';
 
 const state = {
     stream: null,
@@ -53,7 +53,7 @@ const mutations = {
     clearPhonemesData(state) {
         state.phonemeNames = null;
         state.hertzPoints = null;
-    }
+    },
 }
 
 const actions = {
@@ -155,6 +155,10 @@ const getters = {
 
         return `${process.env.VUE_APP_API_URL}/phonemes/xml?input_text=${text}`
             + `&locale=${locale}&voice=${type}`;
+    },
+
+    activeTab(state) {
+        return state.currentActiveTab;
     },
 }
 
