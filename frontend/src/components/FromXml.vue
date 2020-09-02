@@ -24,12 +24,19 @@
 </template>
 
 <script>
-import { ref, watch, computed } from "vue";
+import getChartGenerator from "../assets/scripts/phonemesChart.js";
+
+import { ref, computed } from "vue";
 import { useStore } from "vuex";
 
 export default {
     setup() {
         const store = useStore();
+
+        const chartColor = "#00d1b2";
+
+        const phonemeNames = computed(() => store.state.phonemeNames);
+        const hertzPoints = computed(() => store.state.hertzPoints);
 
         const xmlFile = ref(null);
 
@@ -41,11 +48,22 @@ export default {
 
         const generateButtonDisabled = computed(() => !xmlFile.value);
 
+        const generateChart = getChartGenerator();
+
+        const generateAudio = async () => {
+            await store.dispatch('audioStreamFromXml', xmlFile.value);
+
+            await store.dispatch('graphPhonemesFromXml', xmlFile.value);
+
+            generateChart(phonemeNames, hertzPoints, chartColor);
+        };
+
         return {
             xmlFile,
             swapFile,
             generateButtonDisabled,
             toggleLoader,
+            generateAudio,
         }
     }
 }
