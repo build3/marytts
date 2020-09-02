@@ -60,6 +60,7 @@ const state = {
     xmlFile: null,
     userText: '',
     selectedVoiceId: null,
+    errors: null,
 }
 
 const mutations = {
@@ -115,6 +116,10 @@ const mutations = {
 
     setXmlFile(state, xmlFile) {
         state.xmlFile = xmlFile;
+    },
+
+    setError(state, errors) {
+        state.errors = errors;
     },
 }
 
@@ -177,6 +182,7 @@ const actions = {
     audioStreamFromXml({ commit, state: { xmlFile } }) {
         commit('clearStream');
         commit('bindLoader');
+        commit('setError', null);
 
         const formData = new FormData();
         formData.append('xml', xmlFile);
@@ -184,7 +190,13 @@ const actions = {
         const requestData = { method: "POST", body: formData };
 
         fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice`, requestData)
-            .then(response => response.blob())
+            .then(response => {
+                if (!response.ok) {
+                    throw Error;
+                }
+
+                return response.blob();
+            })
             .then(blob => {
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -192,7 +204,11 @@ const actions = {
                 };
                 reader.readAsDataURL(blob);
                 commit('bindLoader');
-            });
+            })
+            .catch(error => {
+                commit('bindLoader');
+                commit('setError', 'Invalid XML file.');
+            })
     },
 
     graphPhonemesFromXml({ commit, state: { xmlFile } }) {
@@ -202,11 +218,19 @@ const actions = {
         const requestData = { method: "POST", body: formData };
 
         return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes`, requestData)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw Error;
+                }
+
+                return response.json()
+            })
+            .catch(error => commit('setError', 'Invalid XML file.'))
             .then(data => commit('setPoints', gatherPoints(data)));
     },
 
     changeTab({ commit }, tab) {
+        commit('setError', null);
         commit('setTab', tab);
     },
 

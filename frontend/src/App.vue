@@ -6,6 +6,10 @@
             </h1>
         </div>
     </nav>
+    <div class="notification is-danger mt-5" v-if="errors">
+        <button class="delete" @click="resetErrors"></button>
+        {{ errors }}
+    </div>
     <section>
         <div class="columns mt-2 is-mobile is-centered">
             <div class="column is-half">
@@ -41,11 +45,17 @@ export default {
 
         const activeTab = computed(() => store.state.currentActiveTab);
 
+        const errors = computed(() => store.state.errors);
+
+        const resetErrors = (() => store.commit('setError', null));
+
         return {
             stream,
             activeTab,
             textTab,
             xmlTab,
+            errors,
+            resetErrors,
         }
     },
 };
