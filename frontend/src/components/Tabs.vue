@@ -6,7 +6,7 @@
                 @click="changeTab(textTab)"
             >
                 <a>
-                    <span>Text</span>
+                    <span>From text</span>
                 </a>
             </li>
             <li
@@ -14,7 +14,7 @@
                 @click="changeTab(xmlTab)"
             >
                 <a>
-                    <span>XML</span>
+                    <span>From XML</span>
                 </a>
             </li>
         </ul>
