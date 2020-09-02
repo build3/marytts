@@ -19,6 +19,8 @@
             </label>
         </div>
 
+        <voice-select />
+
         <audio-button
             :isXml="true"
             :shouldDisable="generateButtonDisabled" />

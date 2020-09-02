@@ -7,18 +7,7 @@
             </div>
         </div>
 
-        <div class="field mt-2">
-            <div class="control">
-                <div class="select is-fullwidth is-primary">
-                    <select @change="setSeletectedVoice" :value="getSelectedVoice">
-                        <option :value="null" disabled>Select voice</option>
-                        <option :value="id"
-                            v-for="{id, locale, sex, type} in voiceTypes" :key="id">
-                            {{ locale }} - {{ sex }} - {{ type }}</option>
-                    </select>
-                </div>
-            </div>
-        </div>
+        <voice-select />
 
         <div class="columns">
             <div class="column is-half">
@@ -45,26 +34,21 @@ export default {
     setup() {
         const store = useStore();
 
-        const voiceTypes = computed(() => store.state.voiceSet);
-
         const getUserText = computed(() => store.state.userText);
         const setUserText = ((event) => store.dispatch('updateUserText', event.target.value));
 
         const getSelectedVoice = computed(() => store.state.selectedVoiceId);
-        const setSeletectedVoice = ((event) => store.dispatch('updateSelectedVoice', event.target.value));
 
         const generateButtonDisabled = computed(() => !getSelectedVoice.value || !getUserText.value);
 
         const xmlUrl = computed(() => store.getters.maryttsXmlUrl);
 
         return {
-            voiceTypes,
             generateButtonDisabled,
             xmlUrl,
             getUserText,
             setUserText,
             getSelectedVoice,
-            setSeletectedVoice,
         }
     }
 }
