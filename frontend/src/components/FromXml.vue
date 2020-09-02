@@ -1,10 +1,10 @@
 <template>
     <div>
-        <div class="file is-centered mt-2 mb-5">
+        <div class="file is-centered mt-2 mb-5 is-fullwidth">
             <label class="file-label">
                 <input class="file-input"
                     type="file"
-                    @change="swapFile">
+                    @change="swapFile" />
                 <span class="file-cta">
                     <span class="file-icon">
                         <font-awesome-icon icon="upload" />
@@ -12,6 +12,9 @@
                     <span class="file-label">
                         Choose a XML file…
                     </span>
+                </span>
+                <span class="file-name">
+                    {{ fileName }}
                 </span>
             </label>
         </div>
@@ -36,10 +39,19 @@ export default {
 
         const generateButtonDisabled = computed(() => !xmlFile.value);
 
+        const fileName = computed(() => {
+            if (!xmlFile.value) {
+                return '';
+            }
+
+            return xmlFile.value.name;
+        })
+
         return {
             xmlFile,
             swapFile,
             generateButtonDisabled,
+            fileName,
         }
     }
 }
