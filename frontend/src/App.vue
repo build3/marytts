@@ -11,22 +11,24 @@
             <div class="column is-half">
                 <mary-tabs />
 
-                <div class="field">
-                    <div class="control">
-                        <input class="input is-primary" type="text"
-                            placeholder="Insert your text here" v-model="userText">
+                <div v-if="activeTab === textTab">
+                    <div class="field">
+                        <div class="control">
+                            <input class="input is-primary" type="text"
+                                placeholder="Insert your text here" v-model="userText">
+                        </div>
                     </div>
-                </div>
 
-                <div class="field mt-2">
-                    <div class="control">
-                        <div class="select is-fullwidth is-primary">
-                            <select v-model="selectedVoice">
-                                <option :value="null" disabled>Select voice</option>
-                                <option :value="id"
-                                    v-for="{id, locale, sex, type} in voiceTypes" :key="id">
-                                    {{ locale }} - {{ sex }} - {{ type }}</option>
-                            </select>
+                    <div class="field mt-2">
+                        <div class="control">
+                            <div class="select is-fullwidth is-primary">
+                                <select v-model="selectedVoice">
+                                    <option :value="null" disabled>Select voice</option>
+                                    <option :value="id"
+                                        v-for="{id, locale, sex, type} in voiceTypes" :key="id">
+                                        {{ locale }} - {{ sex }} - {{ type }}</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -58,6 +60,7 @@
 </template>
 <script>
 import getChartGenerator from "./assets/scripts/phonemesChart.js";
+import { textTab, xmlTab } from './store/index';
 
 import { ref, watch, computed } from "vue";
 import { useStore } from "vuex";
@@ -98,6 +101,8 @@ export default {
 
         const xmlUrl = computed(() => store.getters.maryttsXmlUrl);
 
+        const activeTab = computed(() => store.state.currentActiveTab);
+
         return {
             stream,
             generateAudio,
@@ -107,6 +112,9 @@ export default {
             toggleLoader,
             generateButtonDisabled,
             xmlUrl,
+            activeTab,
+            textTab,
+            xmlTab,
         }
     },
 };
