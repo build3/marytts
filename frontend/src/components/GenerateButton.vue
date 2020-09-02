@@ -15,7 +15,7 @@ export default {
     props: {
         isXml: Boolean,
         shouldDisable: Boolean,
-        actionArgs: Object
+        actionArgs: Object,
     },
 
     setup(props) {
@@ -31,6 +31,7 @@ export default {
         const generateButtonDisabled = computed(() => props.shouldDisable);
 
         const generateChart = getChartGenerator();
+        const currentChart = computed(() => store.state.currentChart);
 
         const generateAudio = async () => {
             if (props.isXml) {
@@ -43,7 +44,12 @@ export default {
                 await store.dispatch('graphPhonemes', props.actionArgs);
             }
 
-            generateChart(phonemeNames, hertzPoints, chartColor);
+            if (!currentChart.value) {
+                const chart = generateChart(phonemeNames, hertzPoints, chartColor);
+                store.dispatch('setNewChart', chart);
+            } else {
+                store.dispatch('updateChart');
+            }
         };
 
         return {

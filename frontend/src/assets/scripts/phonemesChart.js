@@ -2,14 +2,10 @@ import Chart from "chart.js";
 
 const getChartGenerator = () => {
 
-    let phonemesChart;
-
     return (phonemes, hertz, color, test) => {
         const chartName = document.getElementById('phonemesWave');
 
-        phonemesChart?.destroy();
-
-        phonemesChart = new Chart(chartName, {
+        return new Chart(chartName, {
             type: 'line',
             data: {
                 labels: phonemes.value,
@@ -47,7 +43,7 @@ const getChartGenerator = () => {
                     }]
                 }
             }
-        })
+        });
     }
 };
 

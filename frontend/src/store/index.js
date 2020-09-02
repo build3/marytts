@@ -56,6 +56,7 @@ const state = {
         { id:18, locale: 'ru', type: 'ac-irina-hsmm', sex: 'female'},
     ],
     currentActiveTab: textTab,
+    currentChart: null,
 }
 
 const mutations = {
@@ -84,6 +85,23 @@ const mutations = {
     setTab(state, tab) {
         state.currentActiveTab = tab;
     },
+
+    setCurrentChart(state, chart) {
+        state.currentChart = chart;
+    },
+
+    updateChartData(state) {
+        const { currentChart, phonemeNames, hertzPoints } = state;
+        currentChart.data.labels = phonemeNames;
+
+        currentChart.data.datasets[0] = Object.assign(
+            currentChart.data.datasets[0],
+            { data: hertzPoints },
+            {}
+        )
+
+        currentChart.update();
+    }
 }
 
 const actions = {
@@ -176,6 +194,14 @@ const actions = {
 
     changeTab({ commit }, tab) {
         commit('setTab', tab);
+    },
+
+    setNewChart({ commit }, chart) {
+        commit('setCurrentChart', chart);
+    },
+
+    updateChart({ commit }) {
+        commit('updateChartData');
     },
 }
 
