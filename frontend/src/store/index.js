@@ -142,15 +142,26 @@ const getters = {
         return state.runLoader ? 'is-loading': '';
     },
 
-    maryttsXmlUrl: (state) => (text, selectedVoice) => {
-        if (!selectedVoice || text === '') {
+    maryttsXmlUrl: ({ voiceSet }) => (text, selectedVoiceId) => {
+        if (!selectedVoiceId || !text) {
             return '';
         }
 
-        const { type, locale } = state.voiceSet.find(voice => voice.id === selectedVoice);
+        const voice = voiceSet.find(({ id }) => id === selectedVoiceId);
 
-        return `${process.env.VUE_APP_API_URL}/phonemes/xml?input_text=${text}`
-            + `&locale=${locale}&voice=${type}`;
+        if (!voice) {
+            return ''
+        }
+
+        const { locale, type } = voice;
+
+        const searchParams = new URLSearchParams({
+            input_text: text,
+            locale,
+            type,
+        })
+
+        return `${process.env.VUE_APP_API_URL}/phonemes/xml?${searchParams}`;
     },
 }
 
