@@ -3,6 +3,7 @@
         <ul>
             <li
                 :class="{ 'is-active': activeTab === textTab }"
+                @click="changeTab(textTab)"
             >
                 <a>
                     <span>Text</span>
@@ -10,6 +11,7 @@
             </li>
             <li
                 :class="{ 'is-active': activeTab === xmlTab }"
+                @click="changeTab(xmlTab)"
             >
                 <a>
                     <span>XML</span>
@@ -31,10 +33,13 @@ export default {
 
         const activeTab = computed(() => store.getters.activeTab);
 
+        const changeTab = ((tab) => store.dispatch('changeTab', tab))
+
         return {
             activeTab,
             textTab,
             xmlTab,
+            changeTab,
         }
     }
 }
