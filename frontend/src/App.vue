@@ -9,6 +9,8 @@
     <section>
         <div class="columns mt-2 is-mobile is-centered">
             <div class="column is-half">
+                <mary-tabs />
+
                 <div class="field">
                     <div class="control">
                         <input class="input is-primary" type="text"
