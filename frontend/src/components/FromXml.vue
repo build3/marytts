@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="file is-centered mt-2 mb-5 is-fullwidth">
+        <div class="file is-centered mt-2 mb-3 is-fullwidth">
             <label class="file-label">
                 <input class="file-input"
                     type="file"
@@ -23,9 +23,11 @@
 
         <voice-select />
 
-        <audio-button
-            :isXml="true"
-            :shouldDisable="generateButtonDisabled" />
+        <div class="mt-4 pt-1">
+            <audio-button
+                :isXml="true"
+                :shouldDisable="generateButtonDisabled" />
+        </div>
     </div>
 </template>
 
