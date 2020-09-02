@@ -41,7 +41,7 @@ export default {
                 await store.dispatch('graphPhonemes');
             }
 
-            if (phonemeNames.value.length !== 0 && hertzPoints.value.length !== 0) {
+            if (phonemeNames.value.length > 0 && hertzPoints.value.length > 0) {
                 if (!currentChart.value) {
                     const chart = generateChart(phonemeNames, hertzPoints, chartColor);
                     store.dispatch('setNewChart', chart);

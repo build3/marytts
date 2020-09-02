@@ -5,6 +5,7 @@
                 <input class="file-input"
                     type="file"
                     @change="swapFile" />
+
                 <span class="file-cta">
                     <span class="file-icon">
                         <font-awesome-icon icon="upload" />
@@ -13,6 +14,7 @@
                         Choose a XML file…
                     </span>
                 </span>
+
                 <span class="file-name">
                     {{ fileName }}
                 </span>
@@ -47,7 +49,7 @@ export default {
             }
 
             return xmlFile.value.name;
-        })
+        });
 
         return {
             xmlFile,

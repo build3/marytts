@@ -3,7 +3,9 @@
         <div class="field">
             <div class="control">
                 <input class="input is-primary" type="text"
-                    placeholder="Insert your text here" :value="getUserText" @input="setUserText">
+                    placeholder="Insert your text here"
+                    :value="getUserText"
+                    @input="setUserText">
             </div>
         </div>
 

@@ -31,7 +31,7 @@ export default {
 
         const activeTab = computed(() => store.state.currentActiveTab);
 
-        const changeTab = ((tab) => store.dispatch('changeTab', tab))
+        const changeTab = ((tab) => store.dispatch('changeTab', tab));
 
         return {
             activeTab,

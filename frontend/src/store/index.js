@@ -108,8 +108,8 @@ const mutations = {
         currentChart.data.datasets[0] = Object.assign(
             currentChart.data.datasets[0],
             { data: hertzPoints },
-            {}
-        )
+            {},
+        );
 
         currentChart.update();
     },
@@ -146,7 +146,7 @@ const actions = {
                 body: JSON.stringify({
                     input_text: userText,
                     locale: locale,
-                    voice: type
+                    voice: type,
                 })
             };
 
@@ -170,7 +170,7 @@ const actions = {
                 body: JSON.stringify({
                     input_text: userText,
                     locale: locale,
-                    voice: type
+                    voice: type,
                 })
             };
 
