@@ -180,13 +180,22 @@ const actions = {
         }
     },
 
-    audioStreamFromXml({ commit, state: { xmlFile } }) {
+    audioStreamFromXml({ commit, state: { xmlFile, selectedVoiceId, voiceSet } }) {
         commit('clearStream');
         commit('bindLoader');
         commit('setError', null);
 
         const formData = new FormData();
         formData.append('xml', xmlFile);
+
+        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+
+        if (selectedSpeechVoice) {
+            const { type, locale } = selectedSpeechVoice;
+
+            formData.append('locale', locale);
+            formData.append('voice', type);
+        }
 
         const requestData = { method: "POST", body: formData };
 
