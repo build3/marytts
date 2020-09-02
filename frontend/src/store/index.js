@@ -189,7 +189,7 @@ const actions = {
 
         const requestData = { method: "POST", body: formData };
 
-        fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice`, requestData)
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice`, requestData)
             .then(response => {
                 if (!response.ok) {
                     throw Error;
@@ -205,10 +205,10 @@ const actions = {
                 reader.readAsDataURL(blob);
                 commit('bindLoader');
             })
-            .catch(error => {
+            .catch(_error => {
                 commit('bindLoader');
                 commit('setError', 'Invalid XML file.');
-            })
+            });
     },
 
     graphPhonemesFromXml({ commit, state: { xmlFile } }) {
@@ -223,10 +223,10 @@ const actions = {
                     throw Error;
                 }
 
-                return response.json()
+                return response.json();
             })
-            .catch(error => commit('setError', 'Invalid XML file.'))
-            .then(data => commit('setPoints', gatherPoints(data)));
+            .then(data => commit('setPoints', gatherPoints(data)))
+            .catch(_error => commit('setError', 'Invalid XML file.'));
     },
 
     changeTab({ commit }, tab) {
