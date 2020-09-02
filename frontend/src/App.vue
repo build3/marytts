@@ -1,10 +1,10 @@
 <template>
     <nav class="navbar" role="navigation" aria-label="main navigation">
-            <div class="navbar-brand">
-                <h1 class="navbar-item">
-                    Mary Text to Speech
-                </h1>
-            </div>
+        <div class="navbar-brand">
+            <h1 class="navbar-item">
+                Mary Text to Speech
+            </h1>
+        </div>
     </nav>
     <section>
         <div class="columns mt-2 is-mobile is-centered">
