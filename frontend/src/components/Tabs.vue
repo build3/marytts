@@ -31,7 +31,7 @@ export default {
     setup() {
         const store = useStore();
 
-        const activeTab = computed(() => store.getters.activeTab);
+        const activeTab = computed(() => store.state.currentActiveTab);
 
         const changeTab = ((tab) => store.dispatch('changeTab', tab))
 

@@ -164,10 +164,6 @@ const getters = {
         return `${process.env.VUE_APP_API_URL}/phonemes/xml?input_text=${text}`
             + `&locale=${locale}&voice=${type}`;
     },
-
-    activeTab(state) {
-        return state.currentActiveTab;
-    },
 }
 
 export default createStore({
