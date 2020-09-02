@@ -30,8 +30,7 @@
                 <a :href="xmlUrl">
                     <button
                         class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
-                        :disabled="generateButtonDisabled"
-                        >Export XML</button>
+                        :disabled="generateButtonDisabled">Export XML</button>
                 </a>
             </div>
         </div>
