@@ -37,7 +37,7 @@ export default {
         const store = useStore();
 
         const getUserText = computed(() => store.state.userText);
-        const setUserText = ((event) => store.dispatch('updateUserText', event.target.value));
+        const setUserText = (({ target: { value } }) => store.dispatch('updateUserText', value));
 
         const getSelectedVoice = computed(() => store.state.selectedVoiceId);
 
