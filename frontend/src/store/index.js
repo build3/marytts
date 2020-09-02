@@ -29,6 +29,14 @@ const gatherPoints = ((data) => data.reduce((acc, { phoneme_name, hertz }) => {
     return acc;
 }, [[], []]));
 
+const readAudioStream = ((commit, blob) => {
+    const reader = new FileReader();
+    reader.onloadend = (() => commit('setStream', reader.result));
+    reader.readAsDataURL(blob);
+
+    commit('bindLoader');
+});
+
 const state = {
     stream: null,
     runLoader: false,
@@ -144,14 +152,7 @@ const actions = {
 
             fetch(`${process.env.VUE_APP_API_URL}/audio-voice`, requestData)
                 .then(response => response.blob())
-                .then(blob => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        commit('setStream', reader.result);
-                    };
-                    reader.readAsDataURL(blob);
-                    commit('bindLoader');
-                });
+                .then(blob => readAudioStream(commit, blob));
             }
     },
 
@@ -197,14 +198,7 @@ const actions = {
 
                 return response.blob();
             })
-            .then(blob => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    commit('setStream', reader.result);
-                };
-                reader.readAsDataURL(blob);
-                commit('bindLoader');
-            })
+            .then(blob => readAudioStream(commit, blob))
             .catch(_error => {
                 commit('bindLoader');
                 commit('setError', 'Invalid XML file.');
