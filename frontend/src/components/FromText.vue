@@ -57,8 +57,6 @@ export default {
 
         const xmlUrl = computed(() => store.getters.maryttsXmlUrl);
 
-        const activeTab = computed(() => store.state.currentActiveTab);
-
         return {
             voiceTypes,
             generateButtonDisabled,
