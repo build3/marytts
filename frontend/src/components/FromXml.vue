@@ -15,6 +15,11 @@
                 </span>
             </label>
         </div>
+
+        <button class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
+            :class="toggleLoader"
+            :disabled="generateButtonDisabled"
+            @click="generateAudio">Generate audio</button>
     </div>
 </template>
 
@@ -29,9 +34,12 @@ export default {
             xmlFile.value = file.target.files[0];
         });
 
+        const generateButtonDisabled = computed(() => !xmlFile.value);
+
         return {
             xmlFile,
             swapFile,
+            generateButtonDisabled,
         }
     }
 }
