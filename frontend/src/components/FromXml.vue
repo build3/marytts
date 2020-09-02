@@ -25,14 +25,19 @@
 
 <script>
 import { ref, watch, computed } from "vue";
+import { useStore } from "vuex";
 
 export default {
     setup() {
+        const store = useStore();
+
         const xmlFile = ref(null);
 
         const swapFile = ((file) => {
             xmlFile.value = file.target.files[0];
         });
+
+        const toggleLoader = computed(() => store.getters.toggleLoader);
 
         const generateButtonDisabled = computed(() => !xmlFile.value);
 
@@ -40,6 +45,7 @@ export default {
             xmlFile,
             swapFile,
             generateButtonDisabled,
+            toggleLoader,
         }
     }
 }
