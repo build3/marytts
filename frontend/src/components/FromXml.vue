@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="file is-centered">
+        <div class="file is-centered mt-2 mb-5">
             <label class="file-label">
                 <input class="file-input"
                     type="file"
