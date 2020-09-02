@@ -260,24 +260,24 @@ const getters = {
         return state.runLoader ? 'is-loading': '';
     },
 
-    maryttsXmlUrl: ({ voiceSet }) => (text, selectedVoiceId) => {
-        if (!selectedVoiceId || !text) {
+    maryttsXmlUrl({ voiceSet, selectedVoiceId, userText }) {
+        if (!selectedVoiceId || !userText) {
             return '';
         }
 
         const voice = voiceSet.find(({ id }) => id === selectedVoiceId);
 
         if (!voice) {
-            return ''
+            return '';
         }
 
         const { locale, type } = voice;
 
         const searchParams = new URLSearchParams({
-            input_text: text,
+            input_text: userText,
             locale,
             type,
-        })
+        });
 
         return `${process.env.VUE_APP_API_URL}/phonemes/xml?${searchParams}`;
     },
