@@ -54,6 +54,10 @@ const mutations = {
         state.phonemeNames = null;
         state.hertzPoints = null;
     },
+
+    setTab(state, tab) {
+        state.currentActiveTab = tab;
+    },
 }
 
 const actions = {
