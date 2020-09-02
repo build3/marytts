@@ -3,16 +3,14 @@
         <ul>
             <li
                 :class="{ 'is-active': activeTab === textTab }"
-                @click="changeTab(textTab)"
-            >
+                @click="changeTab(textTab)">
                 <a>
                     <span>From text</span>
                 </a>
             </li>
             <li
                 :class="{ 'is-active': activeTab === xmlTab }"
-                @click="changeTab(xmlTab)"
-            >
+                @click="changeTab(xmlTab)">
                 <a>
                     <span>From XML</span>
                 </a>

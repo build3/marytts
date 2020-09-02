@@ -15,7 +15,6 @@ export default {
     props: {
         isXml: Boolean,
         shouldDisable: Boolean,
-        actionArgs: Object,
     },
 
     setup(props) {
@@ -35,13 +34,11 @@ export default {
 
         const generateAudio = async () => {
             if (props.isXml) {
-                const { xml } = props.actionArgs;
-
-                await store.dispatch('audioStreamFromXml', xml);
-                await store.dispatch('graphPhonemesFromXml', xml);
+                await store.dispatch('audioStreamFromXml');
+                await store.dispatch('graphPhonemesFromXml');
             } else {
-                await store.dispatch('audioStream', props.actionArgs);
-                await store.dispatch('graphPhonemes', props.actionArgs);
+                await store.dispatch('audioStream');
+                await store.dispatch('graphPhonemes');
             }
 
             if (!currentChart.value) {

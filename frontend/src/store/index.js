@@ -57,6 +57,9 @@ const state = {
     ],
     currentActiveTab: textTab,
     currentChart: null,
+    xmlFile: null,
+    userText: '',
+    selectedVoiceId: null,
 }
 
 const mutations = {
@@ -90,8 +93,7 @@ const mutations = {
         state.currentChart = chart;
     },
 
-    updateChartData(state) {
-        const { currentChart, phonemeNames, hertzPoints } = state;
+    updateChartData({ currentChart, phonemeNames, hertzPoints }) {
         currentChart.data.labels = phonemeNames;
 
         currentChart.data.datasets[0] = Object.assign(
@@ -101,14 +103,25 @@ const mutations = {
         )
 
         currentChart.update();
-    }
+    },
+
+    setUserText(state, text) {
+        state.userText = text;
+    },
+
+    setSelectedVoice(state, voice) {
+        state.selectedVoiceId = parseInt(voice);
+    },
+
+    setXmlFile(state, xmlFile) {
+        state.xmlFile = xmlFile;
+    },
 }
 
 const actions = {
-    audioStream ({ commit, state }, userData) {
+    audioStream ({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
         commit('clearStream');
-
-        const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice);
+        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
 
         if (selectedSpeechVoice) {
             commit('bindLoader');
@@ -118,7 +131,7 @@ const actions = {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    input_text: userData.userText,
+                    input_text: userText,
                     locale: locale,
                     voice: type
                 })
@@ -137,9 +150,10 @@ const actions = {
             }
     },
 
-    graphPhonemes({ commit, state }, userData) {
+    graphPhonemes({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
         commit('clearPhonemesData');
-        const selectedSpeechVoice = state.voiceSet.find(voice => voice.id === userData.selectedVoice);
+
+        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
 
         if (selectedSpeechVoice) {
             const { type, locale } = selectedSpeechVoice;
@@ -148,7 +162,7 @@ const actions = {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    input_text: userData.userText,
+                    input_text: userText,
                     locale: locale,
                     voice: type
                 })
@@ -160,7 +174,7 @@ const actions = {
         }
     },
 
-    audioStreamFromXml({ commit }, xmlFile) {
+    audioStreamFromXml({ commit, state: { xmlFile } }) {
         commit('clearStream');
         commit('bindLoader');
 
@@ -181,7 +195,7 @@ const actions = {
             });
     },
 
-    graphPhonemesFromXml({ commit }, xmlFile) {
+    graphPhonemesFromXml({ commit, state: { xmlFile } }) {
         const formData = new FormData();
         formData.append('xml', xmlFile);
 
@@ -202,6 +216,18 @@ const actions = {
 
     updateChart({ commit }) {
         commit('updateChartData');
+    },
+
+    updateUserText({ commit }, text) {
+        commit('setUserText', text);
+    },
+
+    updateSelectedVoice({ commit }, voice) {
+        commit('setSelectedVoice', voice);
+    },
+
+    updateXmlFile({ commit }, xmlFile) {
+        commit('setXmlFile', xmlFile);
     },
 }
 

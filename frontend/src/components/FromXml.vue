@@ -18,25 +18,21 @@
 
         <audio-button
             :isXml="true"
-            :shouldDisable="generateButtonDisabled"
-            :actionArgs="{ xml: xmlFile }"
-        />
+            :shouldDisable="generateButtonDisabled" />
     </div>
 </template>
 
 <script>
-import { ref, computed } from "vue";
+import { computed } from "vue";
 import { useStore } from "vuex";
 
 export default {
     setup() {
         const store = useStore();
 
-        const xmlFile = ref(null);
+        const xmlFile = computed(() => store.state.xmlFile);
 
-        const swapFile = ((event) => {
-            xmlFile.value = event.target.files[0];
-        });
+        const swapFile = (({ target: { files }}) => store.dispatch('updateXmlFile', files[0]));
 
         const generateButtonDisabled = computed(() => !xmlFile.value);
 
