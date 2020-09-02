@@ -279,7 +279,7 @@ const getters = {
         const searchParams = new URLSearchParams({
             input_text: userText,
             locale,
-            type,
+            voice: type,
         });
 
         return `${process.env.VUE_APP_API_URL}/phonemes/xml?${searchParams}`;
