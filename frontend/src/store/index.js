@@ -3,6 +3,32 @@ import { createStore } from 'vuex';
 export const textTab = 'text';
 export const xmlTab = 'xml';
 
+const gatherPoints = ((data) => data.reduce((acc, { phoneme_name, hertz }) => {
+    const [lastPhoneme] = acc[0].slice(-1);
+    const [lastHertz] = acc[1].slice(-1);
+    const [nextPhoneme] = acc[0].filter(phoneme => phoneme !== '').slice(-1)
+
+    const isLastHertz = lastHertz === hertz;
+    const isLastPhoneme = lastPhoneme === phoneme_name;
+    const isNextPhoneme = nextPhoneme === phoneme_name;
+
+    if (!isLastHertz || !isLastPhoneme) {
+        if (isNextPhoneme) {
+            return [
+                [...acc[0], ''],
+                [...acc[1], hertz],
+            ]
+        }
+
+        return [
+            [...acc[0], phoneme_name],
+            [...acc[1], hertz],
+        ]
+    }
+
+    return acc;
+}, [[], []]));
+
 const state = {
     stream: null,
     runLoader: false,
@@ -111,37 +137,41 @@ const actions = {
             };
 
             return fetch(`${process.env.VUE_APP_API_URL}/phonemes`, requestData)
-                .then(response =>  response.json())
-                .then(data => {
-                    const points = data.reduce((acc, { phoneme_name, hertz }) => {
-                        const [lastPhoneme] = acc[0].slice(-1);
-                        const [lastHertz] = acc[1].slice(-1);
-                        const [nextPhoneme] = acc[0].filter(phoneme => phoneme !== '').slice(-1)
-
-                        const isLastHertz = lastHertz === hertz;
-                        const isLastPhoneme = lastPhoneme === phoneme_name;
-                        const isNextPhoneme = nextPhoneme === phoneme_name;
-
-                        if (!isLastHertz || !isLastPhoneme) {
-                            if (isNextPhoneme) {
-                                return [
-                                    [...acc[0], ''],
-                                    [...acc[1], hertz],
-                                ]
-                            }
-
-                            return [
-                                [...acc[0], phoneme_name],
-                                [...acc[1], hertz],
-                            ]
-                        }
-
-                        return acc;
-                    }, [[], []]);
-                    
-                    commit('setPoints', points);
-                })
+                .then(response => response.json())
+                .then(data => commit('setPoints', gatherPoints(data)))
         }
+    },
+
+    audioStreamFromXml({ commit }, xmlFile) {
+        commit('clearStream');
+        commit('bindLoader');
+
+        const formData = new FormData();
+        formData.append('xml', xmlFile);
+
+        const requestData = { method: "POST", body: formData };
+
+        fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice`, requestData)
+            .then(response => response.blob())
+            .then(blob => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    commit('setStream', reader.result);
+                };
+                reader.readAsDataURL(blob);
+                commit('bindLoader');
+            });
+    },
+
+    graphPhonemesFromXml({ commit }, xmlFile) {
+        const formData = new FormData();
+        formData.append('xml', xmlFile);
+
+        const requestData = { method: "POST", body: formData };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes`, requestData)
+            .then(response => response.json())
+            .then(data => commit('setPoints', gatherPoints(data)));
     },
 
     changeTab({ commit }, tab) {
