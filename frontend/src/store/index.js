@@ -143,6 +143,10 @@ const actions = {
                 })
         }
     },
+
+    changeTab({ commit }, tab) {
+        commit('setTab', tab);
+    },
 }
 
 const getters = {
