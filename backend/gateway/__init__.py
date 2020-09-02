@@ -1,7 +1,7 @@
 from flask import abort, Blueprint, Response, request
 from werkzeug.datastructures import MultiDict
 
-from marytts_processor import get_xml, process_phonemes, process_voice_output
+from marytts_processor import *
 
 from .forms import MaryTTSForm
 
@@ -49,3 +49,30 @@ def get_xml_from_marytts():
 
 def _get_form_data(form: MaryTTSForm) -> tuple:
     return form.data['input_text'], form.data['locale'], form.data['voice']
+
+
+@gateway_bp.route('/xml/audio-voice', methods=['POST'])
+def get_voice_output_from_xml():
+    xml_file = request.files.get('xml')
+
+    locale = request.form.get('locale', 'en_US')
+    voice = request.form.get('voice', 'cmu-bdl-hsmm')
+
+    if not xml_file:
+        abort(400, {"xml": ["XML file is required."]})
+
+    xml = xml_file.read().decode('utf-8')
+
+    content, mimetype, status = process_voice_output_from_xml(xml, locale, voice)
+    return Response(content, mimetype=mimetype, status=status)
+
+
+@gateway_bp.route('/xml/phonemes', methods=['POST'])
+def get_phonemes_from_xml():
+    xml_file = request.files.get('xml')
+
+    if not xml_file:
+        abort(400, {"xml": ["XML file is required."]})
+
+    data, status = process_phonemes_from_xml(xml_file.read())
+    return Response(data, mimetype='application/json', status=status)
