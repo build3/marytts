@@ -213,7 +213,7 @@ const actions = {
                 return response.blob();
             })
             .then(blob => readAudioStream(commit, blob))
-            .catch(_error => {
+            .catch(() => {
                 commit('bindLoader');
                 commit('setError', 'Invalid XML file.');
             });
@@ -234,7 +234,7 @@ const actions = {
                 return response.json();
             })
             .then(data => commit('setPoints', gatherPoints(data)))
-            .catch(_error => commit('setError', 'Invalid XML file.'));
+            .catch(() => commit('setError', 'Invalid XML file.'));
     },
 
     changeTab({ commit }, tab) {
