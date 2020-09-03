@@ -8,7 +8,7 @@ import App from './App.vue';
 import store from './store';
 import Tabs from './components/Tabs.vue';
 import FromXml from './components/FromXml.vue';
-import GenerateButton from './components/GenerateButton.vue';
+import AudioButton from './components/AudioButton.vue';
 import FromText from './components/FromText.vue';
 import VoiceSelect from './components/VoiceSelect.vue';
 
@@ -20,7 +20,7 @@ const app = createApp(App);
 
 app.component('mary-tabs', Tabs);
 app.component('from-xml', FromXml);
-app.component('audio-button', GenerateButton);
+app.component('audio-button', AudioButton);
 app.component('from-text', FromText);
 app.component('voice-select', VoiceSelect);
 
