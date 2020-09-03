@@ -284,6 +284,14 @@ const getters = {
 
         return `${process.env.VUE_APP_API_URL}/phonemes/xml?${searchParams}`;
     },
+
+    currentActiveTabComponent({ currentActiveTab }) {
+        switch (currentActiveTab) {
+            case textTab: return 'from-text'
+            case xmlTab: return 'from-xml'
+            default: return null
+        }
+    },
 }
 
 export default createStore({
