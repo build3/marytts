@@ -44,11 +44,11 @@ export default {
             }
 
             if (phonemeNames.value.length > 0 && hertzPoints.value.length > 0) {
-                if (!currentChart.value) {
+                if (currentChart.value) {
+                    store.dispatch('updateChart');
+                } else {
                     const chart = generateChart(phonemeNames, hertzPoints, chartColor);
                     store.dispatch('setNewChart', chart);
-                } else {
-                    store.dispatch('updateChart');
                 }
             }
         };
