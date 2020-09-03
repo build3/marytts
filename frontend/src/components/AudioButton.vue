@@ -1,7 +1,7 @@
 <template>
     <button class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
         :class="toggleLoader"
-        :disabled="generateButtonDisabled"
+        :disabled="props.disabled"
         @click="generateAudio">Generate audio</button>
 </template>
 
@@ -14,7 +14,7 @@ import getChartGenerator from "../assets/scripts/phonemesChart.js";
 export default {
     props: {
         isXml: Boolean,
-        shouldDisable: Boolean,
+        disabled: Boolean,
     },
 
     setup(props) {
@@ -26,8 +26,6 @@ export default {
         const hertzPoints = computed(() => store.state.hertzPoints);
 
         const toggleLoader = computed(() => store.getters.toggleLoader);
-
-        const generateButtonDisabled = computed(() => props.shouldDisable);
 
         const generateChart = getChartGenerator();
         const currentChart = computed(() => store.state.currentChart);
@@ -52,9 +50,9 @@ export default {
         };
 
         return {
-            generateButtonDisabled,
             toggleLoader,
             generateAudio,
+            props,
         }
     },
 }
