@@ -13,9 +13,7 @@
 
         <div class="columns">
             <div class="column is-half">
-                <audio-button
-                    :isXml="false"
-                    :disabled="generateButtonDisabled" />
+                <audio-button :disabled="generateButtonDisabled" />
             </div>
             <div class="column is-half">
                 <a :href="xmlUrl">

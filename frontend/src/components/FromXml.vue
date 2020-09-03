@@ -25,7 +25,7 @@
 
         <div class="mt-4 pt-1">
             <audio-button
-                :isXml="true"
+                isXml
                 :disabled="generateButtonDisabled" />
         </div>
     </div>

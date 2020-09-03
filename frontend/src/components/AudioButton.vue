@@ -13,7 +13,11 @@ import getChartGenerator from "../assets/scripts/phonemesChart.js";
 
 export default {
     props: {
-        isXml: Boolean,
+        isXml: {
+            required: false,
+            type: Boolean,
+            default: false,
+        },
         disabled: Boolean,
     },
 
