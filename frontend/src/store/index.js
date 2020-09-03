@@ -155,7 +155,6 @@ const actions = {
                 .then(blob => readAudioStream(commit, blob));
             }
 
-        commit('bindLoader');
         return Promise.reject();
     },
 
