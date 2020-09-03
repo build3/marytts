@@ -15,13 +15,7 @@
             <div class="column is-half">
                 <mary-tabs />
 
-                <div v-if="activeTab === textTab">
-                    <from-text />
-                </div>
-
-                <div v-else-if="activeTab === xmlTab">
-                    <from-xml />
-                </div>
+                <component :is="currentActiveTabComponent" />
 
                 <audio v-if="stream" :src="stream" autoplay="true" controls="" type="audio/wave"></audio>
             </div>
@@ -35,15 +29,13 @@
 import { computed } from "vue";
 import { useStore } from "vuex";
 
-import { textTab, xmlTab } from './store/index';
-
 export default {
     setup () {
         const store = useStore();
 
         const stream = computed(() => store.state.stream);
 
-        const activeTab = computed(() => store.state.currentActiveTab);
+        const currentActiveTabComponent = computed(() => store.getters.currentActiveTabComponent);
 
         const errors = computed(() => store.state.errors);
 
@@ -51,11 +43,9 @@ export default {
 
         return {
             stream,
-            activeTab,
-            textTab,
-            xmlTab,
             errors,
             resetErrors,
+            currentActiveTabComponent,
         }
     },
 };
