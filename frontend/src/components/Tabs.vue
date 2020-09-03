@@ -2,14 +2,14 @@
     <div class="tabs is-boxed is-centered is-fullwidth">
         <ul>
             <li
-                :class="{ 'is-active': activeTab === textTab }"
+                :class="{ 'is-active': isTabActive(textTab) }"
                 @click="changeTab(textTab)">
                 <a>
                     <span>From text</span>
                 </a>
             </li>
             <li
-                :class="{ 'is-active': activeTab === xmlTab }"
+                :class="{ 'is-active': isTabActive(xmlTab) }"
                 @click="changeTab(xmlTab)">
                 <a>
                     <span>From XML</span>
@@ -33,11 +33,14 @@ export default {
 
         const changeTab = ((tab) => store.dispatch('changeTab', tab));
 
+        const isTabActive = (tab) => activeTab.value === tab;
+
         return {
             activeTab,
             textTab,
             xmlTab,
             changeTab,
+            isTabActive,
         }
     }
 }
