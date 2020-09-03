@@ -1,7 +1,7 @@
 <template>
     <button class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
         :class="toggleLoader"
-        :disabled="props.disabled"
+        :disabled="disabled"
         @click="generateAudio">Generate audio</button>
 </template>
 
@@ -60,7 +60,6 @@ export default {
         return {
             toggleLoader,
             generateAudio,
-            props,
         }
     },
 }
