@@ -36,11 +36,15 @@ export default {
 
         const generateAudio = async () => {
             if (props.isXml) {
-                await store.dispatch('audioStreamFromXml');
-                await store.dispatch('graphPhonemesFromXml');
+                await Promise.all([
+                    store.dispatch('audioStreamFromXml'),
+                    store.dispatch('graphPhonemesFromXml'),
+                ])
             } else {
-                await store.dispatch('audioStream');
-                await store.dispatch('graphPhonemes');
+                await Promise.all([
+                    store.dispatch('audioStream'),
+                    store.dispatch('graphPhonemes'),
+                ])
             }
 
             if (phonemeNames.value.length > 0 && hertzPoints.value.length > 0) {

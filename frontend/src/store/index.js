@@ -150,10 +150,13 @@ const actions = {
                 })
             };
 
-            fetch(`${process.env.VUE_APP_API_URL}/audio-voice`, requestData)
+            return fetch(`${process.env.VUE_APP_API_URL}/audio-voice`, requestData)
                 .then(response => response.blob())
                 .then(blob => readAudioStream(commit, blob));
             }
+
+        commit('bindLoader');
+        return Promise.reject();
     },
 
     graphPhonemes({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
@@ -178,6 +181,8 @@ const actions = {
                 .then(response => response.json())
                 .then(data => commit('setPoints', gatherPoints(data)))
         }
+
+        return Promise.reject();
     },
 
     audioStreamFromXml({ commit, state: { xmlFile, selectedVoiceId, voiceSet } }) {
