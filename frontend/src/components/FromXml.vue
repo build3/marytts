@@ -11,7 +11,7 @@
                         <font-awesome-icon icon="upload" />
                     </span>
                     <span class="file-label">
-                        Choose a XML file…
+                        Choose an XML file…
                     </span>
                 </span>
 
