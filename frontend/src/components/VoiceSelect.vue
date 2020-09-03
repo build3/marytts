@@ -24,7 +24,7 @@ export default {
         const voiceTypes = computed(() => store.state.voiceSet);
 
         const getSelectedVoice = computed(() => store.state.selectedVoiceId);
-        const setSeletectedVoice = ((event) => store.dispatch('updateSelectedVoice', event.target.value));
+        const setSeletectedVoice = (({ target: { value }}) => store.dispatch('updateSelectedVoice', value));
 
         return {
             voiceTypes,
