@@ -1,7 +1,7 @@
 
 # Created by https://www.toptal.com/developers/gitignore/api/linux,vim,visualstudiocode,python,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,vim,visualstudiocode,python,node
-
+.idea/
 ### Linux ###
 *~
 

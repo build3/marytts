@@ -1,0 +1,38 @@
+version: "3.7"
+
+services:
+  mtts-backend:
+    restart: "no"
+    build:
+      context: ../../backend
+      dockerfile: ../docker/development/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      MARYTTS_URL: http://mtts-marytts:59125/
+    volumes:
+      - "../../backend:/app"
+      - "mtts-pip-cache:/root/.cache/pip"
+
+  mtts-marytts:
+    restart: "no"
+    image: synesthesiam/marytts:5.2
+    ports:
+      - "59125:59125"
+
+  mtts-frontend:
+    environment:
+      - VUE_APP_API_URL=http://ec2-18-189-192-250.us-east-2.compute.amazonaws.com:8000
+    restart: "no"
+    image: node:12
+    ports:
+      - "8080:8080"
+    command: "./tools/run-development.sh"
+    working_dir: /app
+    volumes:
+      - "../../frontend:/app"
+      - "mtts-node_modules:/app/node_modules"
+
+volumes:
+  mtts-pip-cache:
+  mtts-node_modules:
