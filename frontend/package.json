@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server",
+    "prod": "webpack-dev-server --public ec2-18-189-192-250.us-east-2.compute.amazonaws.com",
     "build": "webpack --env.prod"
   },
   "dependencies": {
