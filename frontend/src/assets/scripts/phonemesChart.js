@@ -1,4 +1,5 @@
 import Chart from "chart.js";
+import 'chartjs-plugin-dragdata';
 
 const getChartGenerator = () => {
 
@@ -19,6 +20,16 @@ const getChartGenerator = () => {
                 }]
             },
             options: {
+                dragData: true,
+                dragX: false,
+                dragDataRound: 0, // round to full integers (0 decimals)
+                dragOptions: {
+                  // magnet: { // enable to stop dragging after a certain value
+                  //   to: Math.round
+                  // },
+                  showTooltip: true // Recommended. This will show the tooltip while the user
+                  // drags the datapoint
+                },
                 maintainAspectRatio: false,
                 legend: {
                     display: false,
