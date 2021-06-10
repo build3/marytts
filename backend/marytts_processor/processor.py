@@ -35,7 +35,7 @@ class MaryTTSXMLProcessor:
 
         self.tree = html.document_fromstring(xml)
 
-    def process(self) -> str:
+    def process(self, should_simplify=False) -> str:
         phonemes = self.tree.xpath('//t//ph')
 
         for phoneme in phonemes:
@@ -49,13 +49,14 @@ class MaryTTSXMLProcessor:
             else:
                 f0_pairs = self._split_phoneme_pairs(f0)
 
-                f0_pairs = [
-                    '({}, {})'.format(d['x'], d['y'])
-                    for d in simplify.simplify([
-                        {'x': eval(p)[0], 'y': eval(p)[1]}
-                        for p in f0_pairs
-                    ], 1.5)
-                ]
+                if should_simplify:
+                    f0_pairs = [
+                        '({}, {})'.format(d['x'], d['y'])
+                        for d in simplify.simplify([
+                            {'x': eval(p)[0], 'y': eval(p)[1]}
+                            for p in f0_pairs
+                        ], 1.5)
+                    ]
 
                 for pair in f0_pairs:
                     self.data.append(self._phoneme_dict(pair, duration, phoneme_name))
