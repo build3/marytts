@@ -132,6 +132,8 @@ class MaryTTSXMLGenerator:
             if end_ms := self._get_end_of_phoneme(i):
                 duration = end_ms - start_ms
             else:
+                # When we can't find the end of the phoneme
+                # take its duration from original xml
                 duration = int(phoneme_node.get("d"))
                 end_ms = start_ms + duration
 
