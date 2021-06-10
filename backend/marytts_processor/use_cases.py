@@ -1,6 +1,6 @@
 import re
 import json
-from typing import Any, Tuple
+from typing import Any, Tuple, List
 
 from .generator import MaryTTSXMLGenerator, Point
 from .marytts import MaryTTSRepository
@@ -44,7 +44,7 @@ def process_simplified_voice_output(
 
 def process_voice_output_from_text_and_points(
     text: str,
-    modifiers: Point,
+    modifiers: List[Point],
     locale: str,
     voice: str,
     repository: BaseMaryTTSRepository = MaryTTSRepository()
@@ -108,5 +108,42 @@ def process_voice_output_from_xml(
     return repository.voice_output_from_xml(xml, locale, voice)
 
 
+def process_simplified_voice_output_from_xml(
+    xml: str,
+    locale: str,
+    voice: str,
+    repository: BaseMaryTTSRepository = MaryTTSRepository()
+) -> Tuple[bytes, str, int]:
+    import logging; logging.error(xml)
+    points = json.loads(MaryTTSXMLProcessor(bytes(xml, 'utf-8')).process(should_simplify=True))
+
+    modifiers = [
+        Point(
+            hz=point['hertz'],
+            ms=point['ms'],
+            phoneme=point['phoneme_name']
+        ) for point in points
+    ]
+
+    simplified_xml = MaryTTSXMLGenerator(bytes(xml, 'utf-8'), modifiers).generate()
+    import logging; logging.error(simplified_xml)
+    return repository.voice_output_from_xml(simplified_xml, locale, voice)
+
+
+def process_voice_output_from_xml_and_modifiers(
+    xml: str,
+    modifiers: List[Point],
+    locale: str,
+    voice: str,
+    repository: BaseMaryTTSRepository = MaryTTSRepository()
+) -> Tuple[bytes, str, int]:
+    simplified_xml = MaryTTSXMLGenerator(xml, modifiers).generate()
+    return repository.voice_output_from_xml(simplified_xml, locale, voice)
+
+
 def process_phonemes_from_xml(xml: bytes) -> Tuple[bytes, str, int]:
     return MaryTTSXMLProcessor(xml).process(should_simplify=False), 200
+
+
+def process_simplified_phonemes_from_xml(xml: bytes) -> Tuple[bytes, str, int]:
+    return MaryTTSXMLProcessor(xml).process(should_simplify=True), 200
