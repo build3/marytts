@@ -1,3 +1,4 @@
+import json
 from flask import abort, Blueprint, Response, request
 from werkzeug.datastructures import MultiDict
 
@@ -29,6 +30,27 @@ def get_simplified_voice_output():
         abort(400, form.errors)
 
     content, mimetype, status = process_simplified_voice_output(*_get_form_data(form))
+    return Response(content, mimetype=mimetype, status=status)
+
+
+@gateway_bp.route('/audio-voice/edited', methods=['POST'])
+def get_simplified_voice_output_with_modifiers():
+    form = MaryTTSForm(MultiDict(request.json), meta={'csrf': False})
+    modifiers = request.json.get('modifiers')
+
+    if not form.validate():
+        abort(400, form.errors)
+
+    modifiers = [
+        Point(
+            phoneme=modifier['phoneme_name'],
+            ms=modifier['ms'],
+            hz=modifier['hertz']
+        ) for modifier in modifiers
+    ]
+
+    text, locale, voice = _get_form_data(form)
+    content, mimetype, status = process_voice_output_from_text_and_points(text, modifiers, locale, voice)
     return Response(content, mimetype=mimetype, status=status)
 
 
@@ -103,6 +125,30 @@ def get_simplified_voice_output_from_xml():
     xml = xml_file.read().decode('utf-8')
 
     content, mimetype, status = process_simplified_voice_output_from_xml(xml, locale, voice)
+    return Response(content, mimetype=mimetype, status=status)
+
+
+@gateway_bp.route('/xml/audio-voice/edited', methods=['POST'])
+def get_simplified_voice_output_from_xml_with_modifiers():
+    xml_file = request.files.get('xml')
+    locale = request.form.get('locale', 'en_US')
+    voice = request.form.get('voice', 'cmu-bdl-hsmm')
+    modifiers = json.loads(request.form.get('modifiers'))
+
+    if not xml_file:
+        abort(400, {"xml": ["XML file is required."]})
+
+    modifiers = [
+        Point(
+            phoneme=modifier['phoneme_name'],
+            ms=modifier['ms'],
+            hz=modifier['hertz']
+        ) for modifier in modifiers
+    ]
+
+    xml = xml_file.read().decode('utf-8')
+    content, mimetype, status = process_voice_output_from_xml_and_modifiers(xml, modifiers, locale, voice)
+
     return Response(content, mimetype=mimetype, status=status)
 
 

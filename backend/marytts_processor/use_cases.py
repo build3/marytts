@@ -114,7 +114,6 @@ def process_simplified_voice_output_from_xml(
     voice: str,
     repository: BaseMaryTTSRepository = MaryTTSRepository()
 ) -> Tuple[bytes, str, int]:
-    import logging; logging.error(xml)
     points = json.loads(MaryTTSXMLProcessor(bytes(xml, 'utf-8')).process(should_simplify=True))
 
     modifiers = [
@@ -126,7 +125,6 @@ def process_simplified_voice_output_from_xml(
     ]
 
     simplified_xml = MaryTTSXMLGenerator(bytes(xml, 'utf-8'), modifiers).generate()
-    import logging; logging.error(simplified_xml)
     return repository.voice_output_from_xml(simplified_xml, locale, voice)
 
 
@@ -137,7 +135,7 @@ def process_voice_output_from_xml_and_modifiers(
     voice: str,
     repository: BaseMaryTTSRepository = MaryTTSRepository()
 ) -> Tuple[bytes, str, int]:
-    simplified_xml = MaryTTSXMLGenerator(xml, modifiers).generate()
+    simplified_xml = MaryTTSXMLGenerator(bytes(xml, 'utf-8'), modifiers).generate()
     return repository.voice_output_from_xml(simplified_xml, locale, voice)
 
 
