@@ -63,7 +63,7 @@ class MaryTTSXMLGenerator:
 
     def _get_end_of_phoneme(self, index: int) -> Optional[int]:
         """
-        End of the phoneme is determine by the beginning
+        End of the phoneme is determined by the beginning
         of the next phoneme. When the phoneme is the last one
         in the sequence, its end cannot be determined so None
         is returned

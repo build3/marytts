@@ -26,7 +26,7 @@ def process_simplified_voice_output(
     original_content, original_status_code, _ = repository.load_acoustic_params(text, locale, voice)
 
     if original_status_code != 200:
-        raise Exception("MaryTTS return incorrect acoustic params")
+        raise Exception("MaryTTS returned incorrect acoustic params")
 
     points = json.loads(MaryTTSXMLProcessor(original_content).process(should_simplify=True))
 
@@ -38,6 +38,7 @@ def process_simplified_voice_output(
         ) for point in points
     ]
 
+    import logging; logging.error(modifiers)
     xml = MaryTTSXMLGenerator(original_content, modifiers).generate()
     return repository.voice_output_from_xml(xml, locale, voice)
 
@@ -52,7 +53,7 @@ def process_voice_output_from_text_and_points(
     original_content, original_status_code, _ = repository.load_acoustic_params(text, locale, voice)
 
     if original_status_code != 200:
-        raise Exception("MaryTTS return incorrect acoustic params")
+        raise Exception("MaryTTS returned incorrect acoustic params")
 
     xml = MaryTTSXMLGenerator(original_content, modifiers).generate()
     return repository.voice_output_from_xml(xml, locale, voice)
@@ -117,7 +118,6 @@ def get_xml_from_xml_and_modifiers(
     voice: str,
     repository: BaseMaryTTSRepository = MaryTTSRepository()
 ) -> Tuple[bytes, int, str]:
-    import logging; logging.error(xml)
     return MaryTTSXMLGenerator(bytes(xml, 'utf-8'), modifiers).generate(), 200, 'text/plain'
 
 
