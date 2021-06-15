@@ -97,7 +97,7 @@ Default values:
 
 `input_text` is mandatory
 
-`modifiers` has to contains modifier for **every** phoneme from the `input_test`
+`modifiers` has to contain at least one modifier for every phoneme
 
 #### Response:
 
@@ -240,7 +240,7 @@ Default values:
 
 `input_text` is mandatory
 
-`modifiers` has to contains modifier for **every** phoneme from the `input_test`
+`modifiers` has to contain at least one modifier for every phoneme
 
 #### Response:
 
@@ -278,7 +278,7 @@ Default values:
 
 `input_text` is mandatory
 
-`modifiers` has to contains modifier for **every** phoneme from the `input_test`
+`modifiers` has to contain at least one modifier for every phoneme
 
 #### Response:
 
@@ -374,7 +374,7 @@ Default values:
 
 `input_text` is mandatory
 
-`modifiers` has to contains modifier for **every** phoneme from the `input_test`
+`modifiers` has to contain at least one modifier for every phoneme
 
 #### Response:
 
@@ -405,7 +405,7 @@ Default values:
 
 `input_text` is mandatory
 
-`modifiers` has to contains modifier for **every** phoneme from the `input_test`
+`modifiers` has to contain at least one modifier for every phoneme
 
 #### Sample Response:
 
