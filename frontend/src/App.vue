@@ -10,21 +10,26 @@
         <button class="delete" @click="resetErrors"></button>
         {{ errors }}
     </div>
-    <section>
-        <div class="columns mt-2 is-mobile is-centered">
-            <div class="column is-half">
-                <mary-tabs />
+    <section class="is-flex is-flex-direction-column is-align-items-stretch px-5">
+        <mary-tabs />
 
-                <component :is="currentActiveTabComponent" />
+        <component :is="currentActiveTabComponent" />
 
-                <audio v-if="stream" :src="stream" autoplay="true" controls="" type="audio/wave"></audio>
-            </div>
-        </div>
+        <audio
+            class="pt-4"
+            :class="{ 'is-invisible': isStreamEmpty }"
+            :src="stream"
+            autoplay="true"
+            controls=""
+            type="audio/wave" />
+
         <div class="chart-size">
             <canvas id="phonemesWave"></canvas>
         </div>
     </section>
+    <component :is="currentActiveTabFooter" :isStreamEmpty="isStreamEmpty" />
 </template>
+
 <script>
 import { computed } from "vue";
 import { useStore } from "vuex";
@@ -34,8 +39,10 @@ export default {
         const store = useStore();
 
         const stream = computed(() => store.state.stream);
+        const isStreamEmpty = computed(() => !stream.value)
 
         const currentActiveTabComponent = computed(() => store.getters.currentActiveTabComponent);
+        const currentActiveTabFooter = computed(() => store.getters.currentActiveTabFooter);
 
         const errors = computed(() => store.state.errors);
 
@@ -43,9 +50,11 @@ export default {
 
         return {
             stream,
+            isStreamEmpty,
             errors,
             resetErrors,
             currentActiveTabComponent,
+            currentActiveTabFooter
         }
     },
 };
