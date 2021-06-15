@@ -306,6 +306,14 @@ const getters = {
             default: return null
         }
     },
+
+    currentActiveTabFooter({ currentActiveTab }) {
+        switch (currentActiveTab) {
+            case textTab: return 'from-text-footer'
+            case xmlTab: return 'from-xml-footer'
+            default: return null
+        }
+    },
 }
 
 export default createStore({
