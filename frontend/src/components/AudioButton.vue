@@ -1,5 +1,5 @@
 <template>
-    <button class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
+    <button class="button has-text-weight-bold is-primary is-fullwidth"
         :class="toggleLoader"
         :disabled="disabled"
         @click="generateAudio">Generate audio</button>

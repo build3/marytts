@@ -1,5 +1,5 @@
 <template>
-    <div class="field mt-2">
+    <div class="field my-4">
         <div class="control">
             <div class="select is-fullwidth is-primary">
                 <select @change="setSeletectedVoice" :value="getSelectedVoice">
