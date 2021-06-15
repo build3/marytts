@@ -236,6 +236,14 @@ const actions = {
             .catch(() => commit('setError', 'Invalid XML file.'));
     },
 
+    simplifiedAudioStream() {
+        console.info('%cTODO%c implement simplified audio stream action', 'font-weight:bold;', 'font-weight:normal')
+    },
+
+    simplifiedGraphPhonemes() {
+        console.info('%cTODO%c implement simplified graph phonemes action', 'font-weight:bold;', 'font-weight:normal')
+    },
+
     changeTab({ commit }, tab) {
         commit('setError', null);
         commit('setTab', tab);
