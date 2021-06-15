@@ -4,10 +4,10 @@
         :class="{ 'is-invisible': isStreamEmpty }"
     >
         <button
-            class="button is-primary is-fullwidth"
+            class="button is-primary is-fullwidth has-text-weight-bold"
             @click="playStream"
         >
-            <b>Play audio</b>
+            Play audio
         </button>
     </footer>
 </template>
