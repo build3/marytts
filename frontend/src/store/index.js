@@ -260,6 +260,16 @@ const actions = {
     updateXmlFile({ commit }, xmlFile) {
         commit('setXmlFile', xmlFile);
     },
+
+    playStream({ state }) {
+        const { stream } = state
+        const audioElement = document.querySelector('audio')
+
+        if (stream && audioElement) {
+            audioElement.currentTime = 0
+            audioElement.play()
+        }
+    }
 }
 
 const getters = {
