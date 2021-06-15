@@ -99,6 +99,28 @@ def get_xml(
     return repository.load_acoustic_params(text, locale, voice)
 
 
+def get_xml_from_text_and_modifiers(
+    text: str,
+    modifiers: List[Point],
+    locale: str,
+    voice: str,
+    repository: BaseMaryTTSRepository = MaryTTSRepository()
+) -> Tuple[bytes, int, str]:
+    xml, status_code, headers = repository.load_acoustic_params(text, locale, voice)
+    return MaryTTSXMLGenerator(xml, modifiers).generate(), status_code, headers
+
+
+def get_xml_from_xml_and_modifiers(
+    xml: str,
+    modifiers: List[Point],
+    locale: str,
+    voice: str,
+    repository: BaseMaryTTSRepository = MaryTTSRepository()
+) -> Tuple[bytes, int, str]:
+    import logging; logging.error(xml)
+    return MaryTTSXMLGenerator(bytes(xml, 'utf-8'), modifiers).generate(), 200, 'text/plain'
+
+
 def process_voice_output_from_xml(
     xml: str,
     locale: str,
