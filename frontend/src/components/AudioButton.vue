@@ -51,7 +51,11 @@ export default {
                 if (currentChart.value) {
                     store.dispatch('updateChart');
                 } else {
-                    const chart = generateChart(phonemeNames, hertzPoints, chartColor);
+                    const chart = generateChart({
+                        phonemes: phonemeNames,
+                        hertz: hertzPoints,
+                        color: chartColor
+                    });
                     store.dispatch('setNewChart', chart);
                 }
             }
