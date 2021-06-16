@@ -8,14 +8,14 @@ Phoneme = str
 PhonemeCoordinates = Tuple[int, int]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Point:
     phoneme: Phoneme
     ms: int
     hz: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class PhonemeGroup:
     phoneme_name: Phoneme
     points: List[Point]
