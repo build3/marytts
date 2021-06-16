@@ -16,17 +16,17 @@ body {
         width: 100%;
     }
 
-    .chart-size {
+    .chart-size-container {
         flex: 1;
         margin-top: 1rem;
         overflow: hidden;
-        position: relative;
         width: 100%;
+    }
 
-        #phonemesWave {
-            height: 100%;
-            width: 100%;
-        }
+    .chart-size {
+        position: relative;
+        height: 100%;
+        width: 100%;
     }
 
     .field:not(:last-child) {
@@ -63,6 +63,11 @@ body,
 
     > section, > footer {
         justify-self: center;
+        width: 100%;
+    }
+
+    > section > *:not(.chart-size-container):not(.modal), > footer {
+        align-self: center;
         max-width: 768px;
         width: 100%;
     }

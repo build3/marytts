@@ -23,8 +23,10 @@
             controls=""
             type="audio/wave" />
 
-        <div class="chart-size">
-            <canvas id="phonemesWave"></canvas>
+        <div class="chart-size-container">
+            <div class="chart-size">
+                <canvas id="phonemesWave"></canvas>
+            </div>
         </div>
     </section>
     <component :is="currentActiveTabFooter" :isStreamEmpty="isStreamEmpty" />
