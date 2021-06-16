@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -26,31 +27,11 @@ class MaryTTSXMLGenerator:
         self.xml = xml
         self.requested_phoneme_groups = self._group_modifiers(modifiers)
 
-    def _is_point_from_phoneme_group(self, modifier: Point, phoneme: Phoneme) -> bool:
-        return modifier.phoneme == phoneme
-
     def _group_modifiers(self, modifiers: List[Point]) -> List[PhonemeGroup]:
-        if not modifiers:
-            return []
-
-        group_points = []
-        result = []
-        previous_modifier = modifiers[0].phoneme
-
-        for modifier in modifiers:
-            if self._is_point_from_phoneme_group(modifier, previous_modifier):
-                group_points.append(modifier)
-            else:
-                result.append(
-                    PhonemeGroup(phoneme_name=previous_modifier, points=group_points)
-                )
-
-                previous_modifier = modifier.phoneme
-                group_points = [modifier]
-
-        result.append(PhonemeGroup(phoneme_name=previous_modifier, points=group_points))
-
-        return result
+        return [
+            PhonemeGroup(phoneme_name=phoneme, points=list(points)) for (phoneme, points)
+            in itertools.groupby(modifiers, lambda modifier: modifier.phoneme)
+        ]
 
     def _init_tree(self):
         self.tree = html.document_fromstring(self.xml)
