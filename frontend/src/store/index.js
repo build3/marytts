@@ -3,7 +3,7 @@ import { createStore } from 'vuex';
 export const textTab = 'text';
 export const xmlTab = 'xml';
 
-const gatherPoints = ((data) => data.reduce((acc, { phoneme_name, hertz }) => {
+const gatherPoints = ((data) => data.reduce((acc, { phoneme_name, hertz, ms }) => {
     const [lastPhoneme] = acc[0].slice(-1);
     const [lastHertz] = acc[1].slice(-1);
     const [nextPhoneme] = acc[0].filter(phoneme => phoneme !== '').slice(-1)
@@ -17,17 +17,19 @@ const gatherPoints = ((data) => data.reduce((acc, { phoneme_name, hertz }) => {
             return [
                 [...acc[0], ''],
                 [...acc[1], hertz],
+                [...acc[2], ms],
             ]
         }
 
         return [
             [...acc[0], phoneme_name],
             [...acc[1], hertz],
+            [...acc[2], ms],
         ]
     }
 
     return acc;
-}, [[], []]));
+}, [[], [], []]));
 
 const readAudioStream = ((commit, blob) => {
     const reader = new FileReader();
@@ -69,6 +71,7 @@ const state = {
     userText: '',
     selectedVoiceId: null,
     errors: null,
+    ms: null
 }
 
 const mutations = {
@@ -84,9 +87,10 @@ const mutations = {
         state.stream = null;
     },
 
-    setPoints(state, [phoneme_name, hertz]) {
+    setPoints(state, [phoneme_name, hertz, ms]) {
         state.phonemeNames = phoneme_name;
         state.hertzPoints = hertz;
+        state.ms = ms
     },
 
     clearPhonemesData(state) {
@@ -178,7 +182,9 @@ const actions = {
 
             return fetch(`${process.env.VUE_APP_API_URL}/phonemes`, requestData)
                 .then(response => response.json())
-                .then(data => commit('setPoints', gatherPoints(data)))
+                .then(data => {
+                    commit('setPoints', gatherPoints(data))
+                })
         }
 
         return Promise.reject();
@@ -277,6 +283,39 @@ const actions = {
             audioElement.currentTime = 0
             audioElement.play()
         }
+    },
+
+    generateAudioFromEditedPoints({ getters, state }) {
+        const selectedVoice = getters.selectedVoice;
+        const { userText, currentChart } = state;
+
+        if (!selectedVoice) {
+            return Promise.reject('Voice not found');
+        }
+
+        if (!currentChart) {
+            return Promise.reject('Chart not initialized')
+        }
+
+        const { locale, voice } = selectedVoice;
+
+        console.info(currentChart.data.labels, currentChart.data.datasets[0].data)
+
+        // const requestData = {
+        //     method: 'POST',
+        //     body: {
+        //         input_text: userText,
+        //         locale,
+        //         voice,
+        //         modifiers: points
+        //     },
+        //     headers: {
+        //         Accept: 'application/json',
+        //         'Content-Type': 'application/json'
+        //     }
+        // };
+        // 
+        // return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes`, requestData)
     }
 }
 
@@ -322,6 +361,10 @@ const getters = {
             default: return null
         }
     },
+
+    selectedVoice({ selectedVoiceId, voiceSet }) {
+        return voiceSet.find(({ id }) => id === selectedVoiceId);
+    }
 }
 
 export default createStore({

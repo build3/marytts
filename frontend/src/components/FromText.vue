@@ -84,6 +84,7 @@ export default {
         async function generateAudio() {
             store.dispatch('simplifiedAudioStream')
             store.dispatch('simplifiedGraphPhonemes')
+            store.dispatch('generateAudioFromEditedPoints')
             closeSimplifyModal()
         };
 

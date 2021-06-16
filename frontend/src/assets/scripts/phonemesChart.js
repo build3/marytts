@@ -2,19 +2,30 @@ import Chart from "chart.js";
 import 'chartjs-plugin-dragdata';
 
 const getChartGenerator = () => {
-    return ({ phonemes, hertz, color, editable }) => {
+    return ({ phonemes, hertz, ms, color, editable }) => {
         const chartName = document.getElementById('phonemesWave');
 
+        const points = []
+        for (const index in ms.value) {
+            const msPoint = ms.value[index]
+            const point = hertz.value[index]
+            points.push({
+                x: msPoint,
+                y: point,
+            })
+        }
+
         return new Chart(chartName, {
-            type: 'line',
+            type: 'scatter',
             data: {
-                labels: phonemes.value,
                 datasets: [{
                     label: 'Phonemes wave',
                     fill: false,
                     backgroundColor: color,
                     borderColor: color,
-                    data: hertz.value,
+                    showLine: true,
+                    cubicInterpolationMode: 'monotone',
+                    data: points,
                     borderWidth: 2,
                 }]
             },
