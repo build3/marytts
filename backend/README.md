@@ -73,7 +73,7 @@ The simplified audio file
 
 METHOD: `POST`
 
-URL: `/audio-voice/simplify`
+URL: `/audio-voice/edited`
 
 #### Sample Body:
 ```JSON
