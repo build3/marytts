@@ -297,6 +297,8 @@ const actions = {
             return Promise.reject('Chart not initialized')
         }
 
+        commit('bindLoader');
+
         const { locale, voice } = selectedVoice;
 
         const modifiers = []
