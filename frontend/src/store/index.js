@@ -237,7 +237,29 @@ const actions = {
     },
 
     simplifiedAudioStream() {
-        console.info('%cTODO%c implement simplified audio stream action', 'font-weight:bold;', 'font-weight:normal;')
+        commit('clearStream');
+        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+
+        if (selectedSpeechVoice) {
+            commit('bindLoader');
+            const { type, locale } = selectedSpeechVoice;
+
+            const requestData = {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    input_text: userText,
+                    locale: locale,
+                    voice: type,
+                })
+            };
+
+            return fetch(`${process.env.VUE_APP_API_URL}/audio-voice/simplify`, requestData)
+                .then(response => response.blob())
+                .then(blob => readAudioStream(commit, blob));
+        }
+
+        return Promise.reject();
     },
 
     simplifiedGraphPhonemes() {
