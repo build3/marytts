@@ -73,6 +73,10 @@ body,
     }
 }
 
+.modal .modal-background {
+    backdrop-filter: blur(2px);
+}
+
 // transitions
 
 .fade-enter-active,
