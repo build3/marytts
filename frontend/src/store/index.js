@@ -241,7 +241,29 @@ const actions = {
     },
 
     simplifiedGraphPhonemes() {
-        console.info('%cTODO%c implement simplified graph phonemes action', 'font-weight:bold;', 'font-weight:normal;')
+        commit('clearPhonemesData');
+
+        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+
+        if (selectedSpeechVoice) {
+            const { type, locale } = selectedSpeechVoice;
+
+            const requestData = {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    input_text: userText,
+                    locale: locale,
+                    voice: type,
+                })
+            };
+
+            return fetch(`${process.env.VUE_APP_API_URL}/phonemes/simplify`, requestData)
+                .then(response => response.json())
+                .then(data => commit('setPoints', gatherPoints(data)))
+        }
+
+        return Promise.reject();
     },
 
     changeTab({ commit }, tab) {
