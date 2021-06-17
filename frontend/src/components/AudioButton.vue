@@ -1,5 +1,5 @@
 <template>
-    <button class="button has-text-weight-bold is-primary mt-2 mb-4 is-fullwidth"
+    <button class="button has-text-weight-bold is-primary is-fullwidth"
         :class="toggleLoader"
         :disabled="disabled"
         @click="generateAudio">Generate audio</button>
@@ -51,7 +51,11 @@ export default {
                 if (currentChart.value) {
                     store.dispatch('updateChart');
                 } else {
-                    const chart = generateChart(phonemeNames, hertzPoints, chartColor);
+                    const chart = generateChart({
+                        phonemes: phonemeNames,
+                        hertz: hertzPoints,
+                        color: chartColor
+                    });
                     store.dispatch('setNewChart', chart);
                 }
             }

@@ -1,34 +1,30 @@
 <template>
-    <div>
-        <div class="file is-centered mt-2 mb-3 is-fullwidth">
-            <label class="file-label">
-                <input class="file-input"
-                    type="file"
-                    @change="swapFile" />
+    <div class="file is-centered is-fullwidth">
+        <label class="file-label">
+            <input class="file-input"
+                type="file"
+                @change="swapFile" />
 
-                <span class="file-cta">
-                    <span class="file-icon">
-                        <font-awesome-icon icon="upload" />
-                    </span>
-                    <span class="file-label">
-                        Choose an XML file…
-                    </span>
+            <span class="file-cta">
+                <span class="file-icon">
+                    <font-awesome-icon icon="upload" />
                 </span>
-
-                <span class="file-name">
-                    {{ fileName }}
+                <span class="file-label">
+                    Choose an XML file…
                 </span>
-            </label>
-        </div>
+            </span>
 
-        <voice-select />
-
-        <div class="mt-4 pt-1">
-            <audio-button
-                isXml
-                :disabled="generateButtonDisabled" />
-        </div>
+            <span class="file-name">
+                {{ fileName }}
+            </span>
+        </label>
     </div>
+
+    <voice-select />
+
+    <audio-button
+        isXml
+        :disabled="generateButtonDisabled" />
 </template>
 
 <script>

@@ -2,8 +2,7 @@ import Chart from "chart.js";
 import 'chartjs-plugin-dragdata';
 
 const getChartGenerator = () => {
-
-    return (phonemes, hertz, color, test) => {
+    return ({ phonemes, hertz, color, editable }) => {
         const chartName = document.getElementById('phonemesWave');
 
         return new Chart(chartName, {
@@ -20,7 +19,7 @@ const getChartGenerator = () => {
                 }]
             },
             options: {
-                dragData: true,
+                dragData: editable || false,
                 dragX: false,
                 dragDataRound: 0, // round to full integers (0 decimals)
                 dragOptions: {

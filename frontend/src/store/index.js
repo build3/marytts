@@ -236,6 +236,14 @@ const actions = {
             .catch(() => commit('setError', 'Invalid XML file.'));
     },
 
+    simplifiedAudioStream() {
+        console.info('%cTODO%c implement simplified audio stream action', 'font-weight:bold;', 'font-weight:normal;')
+    },
+
+    simplifiedGraphPhonemes() {
+        console.info('%cTODO%c implement simplified graph phonemes action', 'font-weight:bold;', 'font-weight:normal;')
+    },
+
     changeTab({ commit }, tab) {
         commit('setError', null);
         commit('setTab', tab);
@@ -260,6 +268,16 @@ const actions = {
     updateXmlFile({ commit }, xmlFile) {
         commit('setXmlFile', xmlFile);
     },
+
+    playStream({ state }) {
+        const { stream } = state
+        const audioElement = document.querySelector('audio')
+
+        if (stream && audioElement) {
+            audioElement.currentTime = 0
+            audioElement.play()
+        }
+    }
 }
 
 const getters = {
@@ -293,6 +311,14 @@ const getters = {
         switch (currentActiveTab) {
             case textTab: return 'from-text'
             case xmlTab: return 'from-xml'
+            default: return null
+        }
+    },
+
+    currentActiveTabFooter({ currentActiveTab }) {
+        switch (currentActiveTab) {
+            case textTab: return 'from-text-footer'
+            case xmlTab: return 'from-xml-footer'
             default: return null
         }
     },
