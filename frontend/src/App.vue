@@ -6,7 +6,7 @@
             </h1>
         </div>
     </nav>
-    <div class="notification is-danger mt-5" v-if="errors">
+    <div class="notification is-danger" v-if="errors">
         <button class="delete" @click="resetErrors"></button>
         {{ errors }}
     </div>

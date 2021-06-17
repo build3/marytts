@@ -256,7 +256,8 @@ const actions = {
 
             return fetch(`${process.env.VUE_APP_API_URL}/audio-voice/simplify`, requestData)
                 .then(response => response.blob())
-                .then(blob => readAudioStream(commit, blob));
+                .then(blob => readAudioStream(commit, blob))
+                .catch(() => commit('setError', 'The sound cannot be simplified'));
         }
 
         return Promise.reject();
@@ -283,6 +284,7 @@ const actions = {
             return fetch(`${process.env.VUE_APP_API_URL}/phonemes/simplify`, requestData)
                 .then(response => response.json())
                 .then(data => commit('setPoints', gatherPoints(data)))
+                .catch(() => commit('setError', 'The graph cannot be simplified'));
         }
 
         return Promise.reject();
