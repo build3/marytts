@@ -37,6 +37,13 @@ const readAudioStream = ((commit, blob) => {
     commit('bindLoader');
 });
 
+const clearChartData = ((commit) => {
+    commit('clearPhonemesData');
+    commit('clearStream');
+    commit('updateChartData');
+    commit('enableAudioButton');
+});
+
 const state = {
     stream: null,
     runLoader: false,
@@ -263,12 +270,13 @@ const actions = {
                 .then(blob => readAudioStream(commit, blob))
                 .catch(() => {
                     commit('setError', 'The sound cannot be simplified');
-                    commit('enableAudioButton');
+                    clearChartData(commit);
                 });
         }
 
         return Promise.reject();
     },
+    
 
     simplifiedGraphPhonemes({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
         commit('clearPhonemesData');
@@ -293,7 +301,7 @@ const actions = {
                 .then(data => commit('setPoints', gatherPoints(data)))
                 .catch(() =>  {
                     commit('setError', 'The graph cannot be simplified');
-                    commit('enableAudioButton');
+                    clearChartData(commit);
                 });
         }
 
@@ -333,7 +341,7 @@ const actions = {
             audioElement.currentTime = 0
             audioElement.play()
         }
-    }
+    },
 }
 
 const getters = {
