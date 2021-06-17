@@ -143,9 +143,9 @@ const mutations = {
 }
 
 const actions = {
-    audioStream ({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
+    audioStream ({ commit, state: { userText } }) {
         commit('clearStream');
-        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+        const selectedSpeechVoice = getters.selectedVoice;
 
         if (selectedSpeechVoice) {
             commit('bindLoader');
@@ -169,10 +169,10 @@ const actions = {
         return Promise.reject();
     },
 
-    graphPhonemes({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
+    graphPhonemes({ commit, state: { userText } }) {
         commit('clearPhonemesData');
 
-        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+        const selectedSpeechVoice = getters.selectedVoice;
 
         if (selectedSpeechVoice) {
             const { type, locale } = selectedSpeechVoice;
@@ -195,7 +195,7 @@ const actions = {
         return Promise.reject();
     },
 
-    audioStreamFromXml({ commit, state: { xmlFile, selectedVoiceId, voiceSet } }) {
+    audioStreamFromXml({ commit, state: { xmlFile } }) {
         commit('clearStream');
         commit('bindLoader');
         commit('setError', null);
@@ -203,7 +203,7 @@ const actions = {
         const formData = new FormData();
         formData.append('xml', xmlFile);
 
-        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+        const selectedSpeechVoice = getters.selectedVoice;
 
         if (selectedSpeechVoice) {
             const { type, locale } = selectedSpeechVoice;
@@ -247,9 +247,9 @@ const actions = {
             .catch(() => commit('setError', 'Invalid XML file.'));
     },
 
-    simplifiedAudioStream({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
+    simplifiedAudioStream({ commit, state: { userText } }) {
         commit('clearStream');
-        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+        const selectedSpeechVoice = getters.selectedVoice;
 
         if (selectedSpeechVoice) {
             commit('bindLoader');
@@ -278,10 +278,10 @@ const actions = {
     },
     
 
-    simplifiedGraphPhonemes({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
+    simplifiedGraphPhonemes({ commit, state: { userText } }) {
         commit('clearPhonemesData');
 
-        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+        const selectedSpeechVoice = getters.selectedVoice;
 
         if (selectedSpeechVoice) {
             const { type, locale } = selectedSpeechVoice;
@@ -385,6 +385,10 @@ const getters = {
             case xmlTab: return 'from-xml-footer'
             default: return null
         }
+    },
+
+    selectedVoice({ voiceSet, selectedVoiceId }) {
+        return voiceSet.find(({ id }) => id === selectedVoiceId);
     },
 }
 
