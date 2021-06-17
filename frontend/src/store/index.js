@@ -236,7 +236,7 @@ const actions = {
             .catch(() => commit('setError', 'Invalid XML file.'));
     },
 
-    simplifiedAudioStream() {
+    simplifiedAudioStream({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
         commit('clearStream');
         const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
 
@@ -262,7 +262,7 @@ const actions = {
         return Promise.reject();
     },
 
-    simplifiedGraphPhonemes() {
+    simplifiedGraphPhonemes({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
         commit('clearPhonemesData');
 
         const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
