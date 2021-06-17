@@ -287,7 +287,7 @@ const actions = {
 
     generateAudioFromEditedPoints({ getters, state }) {
         const selectedVoice = getters.selectedVoice;
-        const { userText, currentChart } = state;
+        const { userText, currentChart, phonemeNames, ms } = state;
 
         if (!selectedVoice) {
             return Promise.reject('Voice not found');
@@ -299,23 +299,35 @@ const actions = {
 
         const { locale, voice } = selectedVoice;
 
-        console.info(currentChart.data.labels, currentChart.data.datasets[0].data)
+        const modifiers = []
 
-        // const requestData = {
-        //     method: 'POST',
-        //     body: {
-        //         input_text: userText,
-        //         locale,
-        //         voice,
-        //         modifiers: points
-        //     },
-        //     headers: {
-        //         Accept: 'application/json',
-        //         'Content-Type': 'application/json'
-        //     }
-        // };
-        // 
-        // return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes`, requestData)
+        for (const index in currentChart.data.datasets[0].data) {
+            const frequency = currentChart.data.datasets[0].data[index]
+            const time = ms[index]
+            const phonemeName = phonemeNames[index]
+
+            modifiers.push({
+                ms: time,
+                hertz: frequency,
+                phoneme_name: phonemeName
+            })
+        }
+
+        const requestData = {
+            method: 'POST',
+            body: {
+                input_text: userText,
+                locale,
+                voice,
+                modifiers
+            },
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes`, requestData)
     }
 }
 
