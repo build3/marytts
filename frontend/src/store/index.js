@@ -285,7 +285,7 @@ const actions = {
         }
     },
 
-    generateAudioFromEditedPoints({ getters, state }) {
+    generateAudioFromEditedPoints({ commit, getters, state }) {
         const selectedVoice = getters.selectedVoice;
         const { userText, currentChart, phonemeNames, ms } = state;
 
@@ -315,19 +315,25 @@ const actions = {
 
         const requestData = {
             method: 'POST',
-            body: {
+            body: JSON.stringify({
                 input_text: userText,
                 locale,
                 voice,
                 modifiers
-            },
+            }),
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json'
             }
         };
 
-        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes`, requestData)
+        return fetch(`${process.env.VUE_APP_API_URL}/audio-voice/edited`, requestData)
+            .then(response => response.blob())
+            .then(blob => readAudioStream(commit, blob))
+            .catch(() => {
+                commit('bindLoader');
+                commit('setError', 'Could not process the edited points, try again later');
+            });
     }
 }
 
