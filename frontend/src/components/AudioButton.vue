@@ -28,6 +28,7 @@ export default {
 
         const phonemeNames = computed(() => store.state.phonemeNames);
         const hertzPoints = computed(() => store.state.hertzPoints);
+        const ms = computed(() => store.state.ms)
 
         const toggleLoader = computed(() => store.getters.toggleLoader);
 
@@ -54,7 +55,8 @@ export default {
                     const chart = generateChart({
                         phonemes: phonemeNames,
                         hertz: hertzPoints,
-                        color: chartColor
+                        color: chartColor,
+                        ms,
                     });
                     store.dispatch('setNewChart', chart);
                 }
