@@ -22,6 +22,10 @@ class PhonemeGroup:
     points: List[Point]
 
 
+class LengthModifierException(Exception):
+    pass
+
+
 class MaryTTSXMLGenerator:
     def __init__(self, xml: bytes, modifiers: List[Point]):
         self.xml = xml
@@ -71,7 +75,7 @@ class MaryTTSXMLGenerator:
 
     def _check_phonemes_groups(self, xml_phonemes: List[html.HtmlElement]):
         if len(xml_phonemes) != len(self.requested_phoneme_groups):
-            raise AssertionError(
+            raise LengthModifierException(
                 "The size of original phonems and phonems group is different"
             )
 

@@ -1,5 +1,5 @@
 from .use_cases import *
-from .generator import Point
+from .generator import Point, LengthModifierException
 
 __all__ = [
     'get_xml',
@@ -20,4 +20,5 @@ __all__ = [
     'process_voice_output_from_xml_and_modifiers',
 
     'Point',
+    'LengthModifierException',
 ]

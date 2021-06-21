@@ -1,4 +1,6 @@
 import json
+import logging
+from typing import List
 from flask import abort, Blueprint, Response, request
 from werkzeug.datastructures import MultiDict
 
@@ -41,6 +43,9 @@ def get_simplified_voice_output_with_modifiers():
     if not form.validate():
         abort(400, form.errors)
 
+    if not _are_valid_modifiers(modifiers):
+        abort(400, "Invalid format of modifiers")
+
     modifiers = [
         Point(
             phoneme=modifier['phoneme_name'],
@@ -50,7 +55,15 @@ def get_simplified_voice_output_with_modifiers():
     ]
 
     text, locale, voice = _get_form_data(form)
-    content, mimetype, status = process_voice_output_from_text_and_points(text, modifiers, locale, voice)
+
+    try:
+        content, mimetype, status = process_voice_output_from_text_and_points(text, modifiers, locale, voice)
+    except LengthModifierException:
+        abort(400, "Modifiers do not match to the audio")
+    except Exception as e:
+        logging.error(f"Exception caught: '{e}' for request: {request.json}")
+        abort(400, "Modifiers are not correct")
+
     return Response(content, mimetype=mimetype, status=status)
 
 
@@ -100,6 +113,9 @@ def get_xml_from_marytts_with_modifiers():
     if not form.validate():
         abort(400, form.errors)
 
+    if not _are_valid_modifiers(modifiers):
+        abort(400, "Invalid format of modifiers")
+
     modifiers = [
         Point(
             phoneme=modifier['phoneme_name'],
@@ -109,7 +125,14 @@ def get_xml_from_marytts_with_modifiers():
     ]
 
     text, locale, voice = _get_form_data(form)
-    data, status, mimetype = get_xml_from_text_and_modifiers(text, modifiers, locale, voice)
+
+    try:
+        data, status, mimetype = get_xml_from_text_and_modifiers(text, modifiers, locale, voice)
+    except LengthModifierException:
+        abort(400, "Modifiers do not match to the audio")
+    except Exception as e:
+        logging.error(f"Exception caught: '{e}' for request: {request.form}")
+        abort(400, "Modifiers are not correct")
 
     response = Response(data, mimetype=mimetype, status=status)
     response.headers['Content-Disposition'] = f'attachment; filename=marytts.xml'
@@ -124,6 +147,9 @@ def get_xml_from_xml_with_modifiers():
     voice = request.form.get('voice', 'cmu-bdl-hsmm')
     modifiers = json.loads(request.form.get('modifiers'))
 
+    if not _are_valid_modifiers(modifiers):
+        abort(400, "Invalid format of modifiers")
+
     modifiers = [
         Point(
             phoneme=modifier['phoneme_name'],
@@ -133,7 +159,14 @@ def get_xml_from_xml_with_modifiers():
     ]
 
     xml = xml_file.read().decode('utf-8')
-    data, status, mimetype = get_xml_from_xml_and_modifiers(xml, modifiers, locale, voice)
+
+    try:
+        data, status, mimetype = get_xml_from_xml_and_modifiers(xml, modifiers, locale, voice)
+    except LengthModifierException:
+        abort(400, "Modifiers do not match to the audio")
+    except Exception as e:
+        logging.error(f"Exception caught: '{e}' for request: {request.form}")
+        abort(400, "Modifiers are not correct")
 
     response = Response(data, mimetype=mimetype, status=status)
     response.headers['Content-Disposition'] = f'attachment; filename=marytts.xml'
@@ -187,6 +220,9 @@ def get_simplified_voice_output_from_xml_with_modifiers():
     if not xml_file:
         abort(400, {"xml": ["XML file is required."]})
 
+    if not _are_valid_modifiers(modifiers):
+        abort(400, "Invalid format of modifiers")
+
     modifiers = [
         Point(
             phoneme=modifier['phoneme_name'],
@@ -196,7 +232,13 @@ def get_simplified_voice_output_from_xml_with_modifiers():
     ]
 
     xml = xml_file.read().decode('utf-8')
-    content, mimetype, status = process_voice_output_from_xml_and_modifiers(xml, modifiers, locale, voice)
+    try:
+        content, mimetype, status = process_voice_output_from_xml_and_modifiers(xml, modifiers, locale, voice)
+    except LengthModifierException:
+        abort(400, "Modifiers do not match to the audio")
+    except Exception as e:
+        logging.error(f"Exception caught: '{e}' for request: {request.form}")
+        abort(400, "Modifiers are not correct")
 
     return Response(content, mimetype=mimetype, status=status)
 
@@ -221,3 +263,20 @@ def get_simplified_phonemes_from_xml():
 
     data, status = process_simplified_phonemes_from_xml(xml_file.read())
     return Response(data, mimetype='application/json', status=status)
+
+
+def _are_valid_modifiers(modifiers: List[dict]) -> bool:
+    mandatory_keys = ['phoneme_name', 'ms', 'hertz']
+
+    if modifiers is None:
+        return False
+
+    if modifiers == []:
+        return False
+
+    for modifier in modifiers:
+        for key in mandatory_keys:
+            if not key in modifier.keys():
+                return False
+
+    return True
