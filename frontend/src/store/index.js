@@ -143,7 +143,7 @@ const mutations = {
 }
 
 const actions = {
-    audioStream ({ commit, state: { userText } }) {
+    audioStream ({ commit, getters, state: { userText } }) {
         commit('clearStream');
         const selectedSpeechVoice = getters.selectedVoice;
 
@@ -169,7 +169,7 @@ const actions = {
         return Promise.reject();
     },
 
-    graphPhonemes({ commit, state: { userText } }) {
+    graphPhonemes({ commit, getters, state: { userText } }) {
         commit('clearPhonemesData');
 
         const selectedSpeechVoice = getters.selectedVoice;
@@ -195,7 +195,7 @@ const actions = {
         return Promise.reject();
     },
 
-    audioStreamFromXml({ commit, state: { xmlFile } }) {
+    audioStreamFromXml({ commit, getters, state: { xmlFile } }) {
         commit('clearStream');
         commit('bindLoader');
         commit('setError', null);
@@ -247,7 +247,7 @@ const actions = {
             .catch(() => commit('setError', 'Invalid XML file.'));
     },
 
-    simplifiedAudioStream({ commit, state: { userText } }) {
+    simplifiedAudioStream({ commit, getters, state: { userText } }) {
         commit('clearStream');
         const selectedSpeechVoice = getters.selectedVoice;
 
@@ -278,7 +278,7 @@ const actions = {
     },
     
 
-    simplifiedGraphPhonemes({ commit, state: { userText } }) {
+    simplifiedGraphPhonemes({ commit, getters, state: { userText } }) {
         commit('clearPhonemesData');
 
         const selectedSpeechVoice = getters.selectedVoice;
