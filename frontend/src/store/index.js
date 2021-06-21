@@ -299,7 +299,7 @@ const actions = {
 
         commit('bindLoader');
 
-        const { locale, voice } = selectedVoice;
+        const { locale, type } = selectedVoice;
 
         const modifiers = []
 
@@ -320,7 +320,7 @@ const actions = {
             body: JSON.stringify({
                 input_text: userText,
                 locale,
-                voice,
+                voice: type,
                 modifiers
             }),
             headers: {
