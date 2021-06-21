@@ -1,21 +1,41 @@
 import Chart from "chart.js";
 import 'chartjs-plugin-dragdata';
 
+const chartData = [];
+
+const createDataSet = (hertz, phonemes, ms) => {
+    let singlePoint = {};
+    const hzPoints = hertz.value;
+    const phonem = phonemes.value;
+
+    ms.value.forEach((ms, i) => {
+        singlePoint = {
+            x: ms,
+            y: hzPoints[i],
+            phonem: phonem[i],
+        }
+
+        chartData.push(singlePoint);
+    });
+};
+
 const getChartGenerator = () => {
-    return ({ phonemes, hertz, color, editable }) => {
+    return ({ phonemes, hertz, ms, color, editable }) => {
         const chartName = document.getElementById('phonemesWave');
 
+        createDataSet(hertz, phonemes, ms);
+
         return new Chart(chartName, {
-            type: 'line',
+            type: 'scatter',
             data: {
-                labels: phonemes.value,
                 datasets: [{
-                    label: 'Phonemes wave',
+                    label: phonemes.value,
                     fill: false,
                     backgroundColor: color,
                     borderColor: color,
-                    data: hertz.value,
+                    data: chartData,
                     borderWidth: 2,
+                    showLine: true,
                 }]
             },
             options: {
@@ -42,15 +62,23 @@ const getChartGenerator = () => {
                     }],
 
                     xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+
                         scaleLabel: {
                             display: true,
-                            labelString: 'phoneme name'
+                            labelString: 'Phonemes name'
                         },
-                        beginAtZero: true,
                         ticks: {
+                            beginAtZero: true,
                             autoSkip: false,
+                            stepSize: 1,
+                            callback: (value, index) => ms.value.includes(value) ? chartData.find(obj => obj.x === index).phonem : undefined,
                         }
                     }]
+                },
+                tooltips: {
+
                 }
             }
         });
