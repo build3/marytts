@@ -39,6 +39,13 @@ const readAudioStream = ((commit, blob) => {
     commit('bindLoader');
 });
 
+const clearChartData = ((commit) => {
+    commit('clearPhonemesData');
+    commit('clearStream');
+    commit('updateChartData');
+    commit('enableAudioButton');
+});
+
 const state = {
     stream: null,
     runLoader: false,
@@ -133,12 +140,16 @@ const mutations = {
     setError(state, errors) {
         state.errors = errors;
     },
+
+    enableAudioButton(state) {
+        state.runLoader = false;
+    },
 }
 
 const actions = {
-    audioStream ({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
+    audioStream ({ commit, getters, state: { userText } }) {
         commit('clearStream');
-        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+        const selectedSpeechVoice = getters.selectedVoice;
 
         if (selectedSpeechVoice) {
             commit('bindLoader');
@@ -162,10 +173,10 @@ const actions = {
         return Promise.reject();
     },
 
-    graphPhonemes({ commit, state: { selectedVoiceId, userText, voiceSet } }) {
+    graphPhonemes({ commit, getters, state: { userText } }) {
         commit('clearPhonemesData');
 
-        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+        const selectedSpeechVoice = getters.selectedVoice;
 
         if (selectedSpeechVoice) {
             const { type, locale } = selectedSpeechVoice;
@@ -190,7 +201,7 @@ const actions = {
         return Promise.reject();
     },
 
-    audioStreamFromXml({ commit, state: { xmlFile, selectedVoiceId, voiceSet } }) {
+    audioStreamFromXml({ commit, getters, state: { xmlFile } }) {
         commit('clearStream');
         commit('bindLoader');
         commit('setError', null);
@@ -198,7 +209,7 @@ const actions = {
         const formData = new FormData();
         formData.append('xml', xmlFile);
 
-        const selectedSpeechVoice = voiceSet.find(({ id }) => id === selectedVoiceId);
+        const selectedSpeechVoice = getters.selectedVoice;
 
         if (selectedSpeechVoice) {
             const { type, locale } = selectedSpeechVoice;
@@ -242,12 +253,65 @@ const actions = {
             .catch(() => commit('setError', 'Invalid XML file.'));
     },
 
-    simplifiedAudioStream() {
-        console.info('%cTODO%c implement simplified audio stream action', 'font-weight:bold;', 'font-weight:normal;')
-    },
+    simplifiedAudioStream({ commit, getters, state: { userText } }) {
+        commit('clearStream');
+        const selectedSpeechVoice = getters.selectedVoice;
 
-    simplifiedGraphPhonemes() {
-        console.info('%cTODO%c implement simplified graph phonemes action', 'font-weight:bold;', 'font-weight:normal;')
+        if (selectedSpeechVoice) {
+            commit('bindLoader');
+            const { type, locale } = selectedSpeechVoice;
+
+            const requestData = {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    input_text: userText,
+                    locale: locale,
+                    voice: type,
+                })
+            };
+
+            return fetch(`${process.env.VUE_APP_API_URL}/audio-voice/simplify`, requestData)
+                .then(response => response.blob())
+                .then(blob => readAudioStream(commit, blob))
+                .catch(() => {
+                    commit('setError', 'The sound cannot be simplified');
+                    clearChartData(commit);
+                });
+        }
+
+        return Promise.reject();
+    },
+    
+
+    simplifiedGraphPhonemes({ commit, getters, state: { userText } }) {
+        commit('clearPhonemesData');
+
+        const selectedSpeechVoice = getters.selectedVoice;
+
+        if (selectedSpeechVoice) {
+            const { type, locale } = selectedSpeechVoice;
+
+            const requestData = {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    input_text: userText,
+                    locale: locale,
+                    voice: type,
+                })
+            };
+
+            return fetch(`${process.env.VUE_APP_API_URL}/phonemes/simplify`, requestData)
+                .then(response => response.json())
+                .then(data => commit('setPoints', gatherPoints(data)))
+                .catch(() =>  {
+                    commit('setError', 'The graph cannot be simplified');
+                    clearChartData(commit);
+                });
+        }
+
+        return Promise.reject();
     },
 
     changeTab({ commit }, tab) {

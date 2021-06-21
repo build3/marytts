@@ -93,8 +93,10 @@ export default {
         async function generateAudio() {
             await Promise.all([
                 store.dispatch('simplifiedAudioStream'),
-                store.dispatch('simplifiedGraphPhonemes')
+                store.dispatch('simplifiedGraphPhonemes'),
             ])
+
+            store.dispatch('updateChart')
             simplifiedVersionLoaded.value = true
             closeSimplifyModal()
         };
