@@ -11,14 +11,15 @@
     <voice-select />
 
     <div class="button-row">
-        <audio-button :disabled="generateButtonDisabled" />
+        <audio-button @click="resetSimplifiedVersionLoaded" :disabled="generateButtonDisabled" />
 
         <button
             class="button has-text-weight-bold is-primary is-fullwidth"
-            @click="openSimplifyModal"
+            :class="rightButtonLoaderClass"
             :disabled="simplifyDisabled"
+            @click="onRightButtonClick"
         >
-            Simplify &amp; edit
+            {{ rightButtonLabel }}
         </button>
     </div>
 
@@ -62,6 +63,9 @@ export default {
     setup() {
         const store = useStore();
 
+        const simplifyModalShown = ref(false)
+        const simplifiedVersionLoaded = ref(false)
+
         const getUserText = computed(() => store.state.userText);
         const setUserText = (({ target: { value } }) => store.dispatch('updateUserText', value));
 
@@ -71,7 +75,12 @@ export default {
 
         const simplifyDisabled = computed(() => !store.state.stream);
 
-        const simplifyModalShown = ref(false)
+        const rightButtonLoaderClass = computed(() => store.getters.toggleLoader);
+
+        const rightButtonLabel = computed(() => simplifiedVersionLoaded.value
+          ? 'Generate audio from edited points'
+          : 'Simplify & edit'
+        )
 
         function openSimplifyModal() {
             simplifyModalShown.value = true
@@ -88,8 +97,25 @@ export default {
             ])
 
             store.dispatch('updateChart')
+            simplifiedVersionLoaded.value = true
             closeSimplifyModal()
         };
+
+        function generateAudioFromEditedPoints() {
+            store.dispatch('generateAudioFromEditedPoints')
+        }
+
+        function resetSimplifiedVersionLoaded() {
+            simplifiedVersionLoaded.value = false
+        }
+
+        function onRightButtonClick() {
+            if (simplifiedVersionLoaded.value) {
+                generateAudioFromEditedPoints()
+            } else {
+                openSimplifyModal()
+            }
+        }
 
         return {
             getUserText,
@@ -100,7 +126,12 @@ export default {
             generateAudio,
             simplifyModalShown,
             openSimplifyModal,
-            closeSimplifyModal
+            closeSimplifyModal,
+            simplifiedVersionLoaded,
+            resetSimplifiedVersionLoaded,
+            onRightButtonClick,
+            rightButtonLabel,
+            rightButtonLoaderClass
         }
     }
 }
