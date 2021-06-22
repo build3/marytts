@@ -15,6 +15,7 @@ const getChartGenerator = () => {
                     data: dataset.value,
                     borderWidth: 2,
                     showLine: true,
+                    cubicInterpolationMode: 'monotone',
                 }]
             },
             options: {

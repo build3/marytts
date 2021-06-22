@@ -32,23 +32,11 @@ const gatherPoints = ((data) => data.reduce((acc, { phoneme_name, hertz, ms }) =
 }, [[], [], []]));
 
 const createDataSet = ((hertz, phonems, ms) => {
-    const chartData = [];
-
-    let singlePoint = {};
-    const hzPoints = hertz;
-    const phonem = phonems;
-
-    ms.forEach((ms, i) => {
-        singlePoint = {
-            x: ms,
-            y: hzPoints[i],
-            phonem: phonem[i],
-        }
-
-        chartData.push(singlePoint);
-    });
-
-    return chartData;
+    return ms.map((ms, i) => ({
+        x: ms,
+        y: hertz[i],
+        phonem: phonems[i],
+    }));
 });
 
 const readAudioStream = ((commit, blob) => {
@@ -274,7 +262,10 @@ const actions = {
 
                 return response.json();
             })
-            .then(data => commit('setPoints', gatherPoints(data)))
+            .then(data => {
+                commit('setPoints', gatherPoints(data)),
+                commit('setChartDataset', createDataSet(state.hertzPoints, state.phonemeNames, state.ms))
+            })
             .catch(() => commit('setError', 'Invalid XML file.'));
     },
 
