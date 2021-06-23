@@ -437,7 +437,7 @@ const actions = {
             .then(response => response.blob())
             .then(blob => downloadXML(blob))
             .catch(() => {
-                commit('setError', 'Could not process the edited points, try again later');
+                commit('setError', 'Could not generate xml file');
             });
     },
 
@@ -598,7 +598,7 @@ const actions = {
             .then(response => response.blob())
             .then(blob => downloadXML(blob))
             .catch(() => {
-                commit('setError', 'Could not process the edited points, try again later');
+                commit('setError', 'Could not generate xml file');
             });
     },
 }
