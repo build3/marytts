@@ -34,6 +34,38 @@
             {{ rightButtonLabel }}
         </button>
     </div>
+
+
+    <transition name="fade">
+        <div class="modal is-active" v-if="simplifyModalShown">
+            <div class="modal-background" />
+            <div class="modal-content">
+                <div class="box p-5">
+                    <h1 class="title has-text-centered is-4 mb-0">
+                        Are you sure you want to simplify &amp; edit the chart? This will overwrite the
+                        current one.
+                    </h1>
+                    <h2 class="subtitle has-text-centered is-6 my-0 py-5">
+                        In order to bring back the original audio file use the "Generate audio" button.
+                    </h2>
+                    <div class="button-row">
+                        <button
+                            class="button has-text-weight-bold is-danger is-fullwidth"
+                            @click="generateAudio"
+                        >
+                            Yes
+                        </button>
+                        <button
+                            class="button has-text-weight-bold is-primary is-fullwidth"
+                            @click="closeSimplifyModal"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </transition>
 </template>
 
 <script>
@@ -44,6 +76,7 @@ export default {
     setup() {
         const store = useStore();
 
+        const simplifyModalShown = ref(false)
         const simplifiedVersionLoaded = ref(false)
         const xmlFile = computed(() => store.state.xmlFile);
         const simplifyDisabled = computed(() => !store.state.stream);
@@ -67,6 +100,14 @@ export default {
           : 'Simplify & edit'
         );
 
+        function openSimplifyModal() {
+            simplifyModalShown.value = true
+        }
+
+        function closeSimplifyModal() {
+            simplifyModalShown.value = false
+        }
+
         function resetSimplifiedVersionLoaded() {
             simplifiedVersionLoaded.value = false
         }
@@ -79,6 +120,18 @@ export default {
             }
         }
 
+        async function generateAudio() {
+            await Promise.all([
+                store.dispatch('simplifiedAudioStreamFromXml'),
+                store.dispatch('simplifiedGraphPhonemesFromXml'),
+            ])
+
+            store.dispatch('updateChart')
+            simplifiedVersionLoaded.value = true
+            closeSimplifyModal()
+        };
+
+
         return {
             xmlFile,
             swapFile,
@@ -89,7 +142,11 @@ export default {
             simplifiedVersionLoaded,
             resetSimplifiedVersionLoaded,
             simplifyDisabled,
-            onRightButtonClick
+            onRightButtonClick,
+            openSimplifyModal,
+            simplifyModalShown,
+            closeSimplifyModal,
+            generateAudio
         }
     }
 }

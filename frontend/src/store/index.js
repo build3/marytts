@@ -438,6 +438,62 @@ const actions = {
                 commit('setError', 'Could not process the edited points, try again later');
             });
     },
+
+    simplifiedAudioStreamFromXml({ commit, getters, state: { xmlFile } }) {
+        commit('clearStream');
+        commit('bindLoader');
+        commit('setError', null);
+
+        const formData = new FormData();
+        formData.append('xml', xmlFile);
+
+        const selectedSpeechVoice = getters.selectedVoice;
+
+        if (selectedSpeechVoice) {
+            const { type, locale } = selectedSpeechVoice;
+
+            formData.append('locale', locale);
+            formData.append('voice', type);
+        }
+
+        const requestData = { method: "POST", body: formData };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice/simplify`, requestData)
+            .then(response => {
+                if (!response.ok) {
+                    throw Error;
+                }
+
+                return response.blob();
+            })
+            .then(blob => readAudioStream(commit, blob))
+            .catch(() => {
+                commit('bindLoader');
+                commit('setError', 'Invalid XML file.');
+                clearChartData(commit);
+            });
+    },
+
+    simplifiedGraphPhonemesFromXml({ commit, state: { xmlFile } }) {
+        const formData = new FormData();
+        formData.append('xml', xmlFile);
+
+        const requestData = { method: "POST", body: formData };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes/simplify`, requestData)
+            .then(response => {
+                if (!response.ok) {
+                    throw Error;
+                }
+
+                return response.json();
+            })
+            .then(data => commit('setPoints', gatherPoints(data)))
+            .catch(() => {
+                commit('setError', 'Invalid XML file.'),
+                clearChartData(commit);
+            });
+    },
 }
 
 const getters = {
