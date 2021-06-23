@@ -53,6 +53,10 @@ const downloadXML = (blob) => {
     fileLink.setAttribute('download', 'MaryTTS.xml');
     document.body.appendChild(fileLink);
     fileLink.click();
+    fileLink.style.display = 'none';
+
+    window.URL.revokeObjectURL(fileURL);
+    document.body.removeChild(fileLink);
 };
 
 const state = {
@@ -232,7 +236,8 @@ const actions = {
         return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice`, requestData)
             .then(response => {
                 if (!response.ok) {
-                    throw Error;
+                    commit('setError', 'Error genereting audio from the XML file'),
+                    clearChartData(commit);
                 }
 
                 return response.blob();
@@ -253,7 +258,8 @@ const actions = {
         return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes`, requestData)
             .then(response => {
                 if (!response.ok) {
-                    throw Error;
+                    commit('setError', 'Error genereting phonems from the XML file'),
+                    clearChartData(commit);
                 }
 
                 return response.json();
@@ -463,7 +469,8 @@ const actions = {
         return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice/simplify`, requestData)
             .then(response => {
                 if (!response.ok) {
-                    throw Error;
+                    commit('setError', 'Error simplifying the XML file'),
+                    clearChartData(commit);
                 }
 
                 return response.blob();
@@ -485,7 +492,8 @@ const actions = {
         return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes/simplify`, requestData)
             .then(response => {
                 if (!response.ok) {
-                    throw Error;
+                    commit('setError', 'Error simplifying the XML file'),
+                    clearChartData(commit);
                 }
 
                 return response.json();

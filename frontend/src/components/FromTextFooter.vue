@@ -40,8 +40,8 @@ export default {
             store.dispatch('playStream')
         }
 
-        const generateXml = async () => {
-            await store.dispatch('generateXmlFileFromText')
+        const generateXml = () => {
+            store.dispatch('generateXmlFileFromText')
         };
 
         return {

@@ -36,8 +36,8 @@ export default {
             store.dispatch('playStream')
         }
 
-        const generateXml = async () => {
-            await store.dispatch('generateXmlFileFromXML')
+        const generateXml = () => {
+            store.dispatch('generateXmlFileFromXML')
         };
 
         const selectedVoiceId = computed(() => store.state.selectedVoiceId);
