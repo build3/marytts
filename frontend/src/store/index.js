@@ -494,6 +494,59 @@ const actions = {
                 clearChartData(commit);
             });
     },
+
+    generateAudioFromEditedPointsXml({ commit, getters, state }) {
+        const selectedVoice = getters.selectedVoice;
+        const { userText, currentChart, phonemeNames, ms } = state;
+
+        if (!selectedVoice) {
+            return Promise.reject('Voice not found');
+        }
+
+        if (!currentChart) {
+            return Promise.reject('Chart not initialized')
+        }
+
+        commit('bindLoader');
+
+        const { locale, type } = selectedVoice;
+
+        const modifiers = []
+
+        for (const index in currentChart.data.datasets[0].data) {
+            const frequency = currentChart.data.datasets[0].data[index]
+            const time = ms[index]
+            const phonemeName = phonemeNames[index]
+
+            modifiers.push({
+                ms: time,
+                hertz: frequency,
+                phoneme_name: phonemeName
+            })
+        }
+
+        const requestData = {
+            method: 'POST',
+            body: JSON.stringify({
+                input_text: userText,
+                locale,
+                voice: type,
+                modifiers
+            }),
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/phonemes/xml/edited`, requestData)
+            .then(response => response.blob())
+            .then(blob => readAudioStream(commit, blob))
+            .catch(() => {
+                commit('bindLoader');
+                commit('setError', 'Could not process the edited points, try again later');
+            });
+    },
 }
 
 const getters = {

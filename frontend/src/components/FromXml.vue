@@ -112,6 +112,11 @@ export default {
             simplifiedVersionLoaded.value = false
         }
 
+
+        function generateAudioFromEditedPoints() {
+            store.dispatch('generateAudioFromEditedPointsXml')
+        }
+
         function onRightButtonClick() {
             if (simplifiedVersionLoaded.value) {
                 generateAudioFromEditedPoints()
