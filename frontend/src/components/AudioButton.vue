@@ -35,6 +35,8 @@ export default {
         const generateChart = getChartGenerator();
         const currentChart = computed(() => store.state.currentChart);
 
+        const chartDataset = computed(() => store.state.chartDataset);
+
         const generateAudio = async () => {
             if (props.isXml) {
                 await Promise.all([
@@ -53,10 +55,9 @@ export default {
                     store.dispatch('updateChart');
                 } else {
                     const chart = generateChart({
-                        phonemes: phonemeNames,
-                        hertz: hertzPoints,
                         color: chartColor,
                         ms,
+                        dataset: chartDataset,
                     });
                     store.dispatch('setNewChart', chart);
                 }

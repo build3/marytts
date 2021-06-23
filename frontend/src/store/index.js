@@ -31,6 +31,14 @@ const gatherPoints = ((data) => data.reduce((acc, { phoneme_name, hertz, ms }) =
     return acc;
 }, [[], [], []]));
 
+const createDataSet = ((hertz, phonems, ms) => {
+    return ms.map((ms, i) => ({
+        x: ms,
+        y: hertz[i],
+        phonem: phonems[i],
+    }));
+});
+
 const readAudioStream = ((commit, blob) => {
     const reader = new FileReader();
     reader.onloadend = (() => commit('setStream', reader.result));
@@ -78,7 +86,8 @@ const state = {
     userText: '',
     selectedVoiceId: null,
     errors: null,
-    ms: null
+    ms: null,
+    chartDataset: null,
 }
 
 const mutations = {
@@ -113,16 +122,15 @@ const mutations = {
         state.currentChart = chart;
     },
 
-    updateChartData({ currentChart, phonemeNames, hertzPoints }) {
-        currentChart.data.labels = phonemeNames;
+    updateChartData(state) {
 
-        currentChart.data.datasets[0] = Object.assign(
-            currentChart.data.datasets[0],
-            { data: hertzPoints },
+        state.currentChart.data.datasets[0] = Object.assign(
+            state.currentChart.data.datasets[0],
+            { data: state.chartDataset },
             {},
         );
 
-        currentChart.update();
+        state.currentChart.update();
     },
 
     setUserText(state, text) {
@@ -144,6 +152,10 @@ const mutations = {
     enableAudioButton(state) {
         state.runLoader = false;
     },
+
+    setChartDataset(state, dataset) {
+        state.chartDataset = dataset;
+    }
 }
 
 const actions = {
@@ -194,7 +206,8 @@ const actions = {
             return fetch(`${process.env.VUE_APP_API_URL}/phonemes`, requestData)
                 .then(response => response.json())
                 .then(data => {
-                    commit('setPoints', gatherPoints(data))
+                    commit('setPoints', gatherPoints(data)),
+                    commit('setChartDataset', createDataSet(state.hertzPoints, state.phonemeNames, state.ms))
                 })
         }
 
@@ -249,7 +262,10 @@ const actions = {
 
                 return response.json();
             })
-            .then(data => commit('setPoints', gatherPoints(data)))
+            .then(data => {
+                commit('setPoints', gatherPoints(data)),
+                commit('setChartDataset', createDataSet(state.hertzPoints, state.phonemeNames, state.ms))
+            })
             .catch(() => commit('setError', 'Invalid XML file.'));
     },
 
@@ -304,7 +320,10 @@ const actions = {
 
             return fetch(`${process.env.VUE_APP_API_URL}/phonemes/simplify`, requestData)
                 .then(response => response.json())
-                .then(data => commit('setPoints', gatherPoints(data)))
+                .then(data => {
+                    commit('setPoints', gatherPoints(data)),
+                    commit('setChartDataset', createDataSet(state.hertzPoints, state.phonemeNames, state.ms))
+                })
                 .catch(() =>  {
                     commit('setError', 'The graph cannot be simplified');
                     clearChartData(commit);
