@@ -400,7 +400,44 @@ const actions = {
                 commit('bindLoader');
                 commit('setError', 'Could not process the edited points, try again later');
             });
-    }
+    },
+
+    generateXmlFileFromText({ commit, getters, state: { userText } }) {
+        const selectedVoice = getters.selectedVoice;
+
+        if (!selectedVoice) {
+            return Promise.reject('Voice not found');
+        }
+
+        const { locale, type } = selectedVoice;
+
+        const requestData = {
+            method: 'POST',
+            body: JSON.stringify({
+                input_text: userText,
+                locale,
+                voice: type,
+            }),
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/phonemes/xml`, requestData)
+            .then(response => response.blob())
+            .then(blob => {
+                const fileURL = window.URL.createObjectURL(blob);
+                const fileLink = document.createElement('a');
+                fileLink.href = fileURL;
+                fileLink.setAttribute('download', 'MaryTTS.xml');
+                document.body.appendChild(fileLink);
+                fileLink.click();
+            })
+            .catch(() => {
+                commit('setError', 'Could not process the edited points, try again later');
+            });
+    },
 }
 
 const getters = {

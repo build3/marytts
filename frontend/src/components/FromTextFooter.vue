@@ -10,11 +10,13 @@
             Play audio
         </button>
 
-        <a :href="xmlUrl">
-            <button
-                class="button has-text-weight-bold is-primary is-fullwidth"
-                :disabled="generateButtonDisabled">Export XML</button>
-        </a>
+        <button
+            class="button has-text-weight-bold is-primary is-fullwidth"
+            :disabled="generateButtonDisabled"
+            @click="generateXml"
+        >
+            Export XML
+        </button>
     </footer>
 </template>
 
@@ -34,16 +36,18 @@ export default {
         const userText = computed(() => store.state.userText);
         const generateButtonDisabled = computed(() => !selectedVoiceId.value || !userText.value);
 
-        const xmlUrl = computed(() => store.getters.maryttsXmlUrl);
-
         const playStream = () => {
             store.dispatch('playStream')
         }
 
+        const generateXml = async () => {
+            await store.dispatch('generateXmlFileFromText')
+        };
+
         return {
             generateButtonDisabled,
-            xmlUrl,
             playStream,
+            generateXml,
         }
     }
 }
