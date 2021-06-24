@@ -67,6 +67,19 @@ const downloadXML = (blob) => {
     document.body.removeChild(fileLink);
 };
 
+const updateModifiers = (state, modifiers) => {
+    modifiers.map(item => {
+        let temp = Object.assign({}, item);
+        state.modifiedPoints.forEach(element => {
+            console.log(element.hertz)
+            if (temp.ms === element.ms) {
+                temp.hertz = element.hertz
+            }
+            return temp;
+        });
+    });
+};
+
 const state = {
     stream: null,
     runLoader: false,
@@ -178,7 +191,6 @@ const mutations = {
 
 const actions = {
     updatePoint({ state }, point) {
-
         state.modifiedPoints.push({
             ms: point.x,
             hertz: point.y,
@@ -429,16 +441,7 @@ const actions = {
             })
         }
 
-        modifiers.map(item => {
-            let temp = Object.assign({}, item);
-            modifiedPoints.forEach(element => {
-                console.log(element.hertz)
-                if(temp.ms === element.ms) {
-                    temp.hertz = element.hertz
-                }
-                return temp;
-            });
-        });
+        updateModifiers(state, modifiers);
 
         const requestData = {
             method: 'POST',
@@ -581,6 +584,8 @@ const actions = {
             })
         }
 
+        updateModifiers(state, modifiers);
+
         const requestData = {
             method: 'POST',
             body: JSON.stringify({
@@ -633,6 +638,8 @@ const actions = {
                 phoneme_name: phonemeName
             })
         }
+
+        updateModifiers(state, modifiers);
 
         const requestData = {
             method: 'POST',
