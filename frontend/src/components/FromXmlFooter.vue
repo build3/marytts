@@ -1,6 +1,6 @@
 <template>
     <footer
-        class="px-5 pb-5"
+        class="button-row px-5 pb-5"
         :class="{ 'is-invisible': isStreamEmpty }"
     >
         <button
@@ -9,10 +9,19 @@
         >
             Play audio
         </button>
+
+        <button
+            class="button has-text-weight-bold is-primary is-fullwidth"
+            :disabled="generateButtonDisabled"
+            @click="generateXml"
+        >
+            Export XML
+        </button>
     </footer>
 </template>
 
 <script>
+import { computed } from "vue";
 import { useStore } from "vuex";
 
 export default {
@@ -27,8 +36,17 @@ export default {
             store.dispatch('playStream')
         }
 
+        const generateXml = () => {
+            store.dispatch('generateXmlFileFromXML')
+        };
+
+        const selectedVoiceId = computed(() => store.state.selectedVoiceId);
+        const generateButtonDisabled = computed(() => !selectedVoiceId.value);
+
         return {
             playStream,
+            generateXml,
+            generateButtonDisabled
         }
     }
 }
