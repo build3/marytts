@@ -1,6 +1,8 @@
 import Chart from "chart.js";
 import 'chartjs-plugin-dragdata';
 
+import actions from "../../store/index";
+
 const getChartGenerator = () => {
     return ({ dataset, ms, color, editable }) => {
         const chartName = document.getElementById('phonemesWave');
@@ -19,15 +21,18 @@ const getChartGenerator = () => {
                 }]
             },
             options: {
-                dragData: editable || false,
+                dragData: true,
                 dragX: false,
                 dragDataRound: 0, // round to full integers (0 decimals)
                 dragOptions: {
                   // magnet: { // enable to stop dragging after a certain value
                   //   to: Math.round
                   // },
-                  showTooltip: true // Recommended. This will show the tooltip while the user
+                  showTooltip: true, // Recommended. This will show the tooltip while the user
                   // drags the datapoint
+                },
+                onDragEnd: function (event, datasetIndex, index, value) {
+                    actions.dispatch('updatePoint', value)
                 },
                 maintainAspectRatio: false,
                 legend: {

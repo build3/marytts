@@ -88,9 +88,14 @@ const state = {
     errors: null,
     ms: null,
     chartDataset: null,
+    test: null,
 }
 
 const mutations = {
+    setUpdatedPoint (state, value) {
+        state.test = value;
+    },
+
     bindLoader (state) {
         state.runLoader = !state.runLoader;
     },
@@ -159,6 +164,11 @@ const mutations = {
 }
 
 const actions = {
+    updatePoint({ commit }, point) { 
+        commit('setUpdatedPoint', point)
+        console.log(point.x)
+    },
+
     audioStream ({ commit, getters, state: { userText } }) {
         commit('clearStream');
         const selectedSpeechVoice = getters.selectedVoice;
@@ -467,7 +477,7 @@ const getters = {
 
     selectedVoice({ selectedVoiceId, voiceSet }) {
         return voiceSet.find(({ id }) => id === selectedVoiceId);
-    }
+    },
 }
 
 export default createStore({
