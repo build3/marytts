@@ -54,6 +54,19 @@ const clearChartData = ((commit) => {
     commit('enableAudioButton');
 });
 
+const downloadXML = (blob) => {
+    const fileURL = window.URL.createObjectURL(blob);
+    const fileLink = document.createElement('a');
+    fileLink.href = fileURL;
+    fileLink.setAttribute('download', 'MaryTTS.xml');
+    document.body.appendChild(fileLink);
+    fileLink.click();
+    fileLink.style.display = 'none';
+
+    window.URL.revokeObjectURL(fileURL);
+    document.body.removeChild(fileLink);
+};
+
 const state = {
     stream: null,
     runLoader: false,
@@ -236,7 +249,8 @@ const actions = {
         return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice`, requestData)
             .then(response => {
                 if (!response.ok) {
-                    throw Error;
+                    commit('setError', 'Error genereting audio from the XML file'),
+                    clearChartData(commit);
                 }
 
                 return response.blob();
@@ -257,7 +271,8 @@ const actions = {
         return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes`, requestData)
             .then(response => {
                 if (!response.ok) {
-                    throw Error;
+                    commit('setError', 'Error genereting phonems from the XML file'),
+                    clearChartData(commit);
                 }
 
                 return response.json();
@@ -419,7 +434,200 @@ const actions = {
                 commit('bindLoader');
                 commit('setError', 'Could not process the edited points, try again later');
             });
-    }
+    },
+
+    generateXmlFileFromText({ commit, getters, state: { userText } }) {
+        const selectedVoice = getters.selectedVoice;
+
+        if (!selectedVoice) {
+            return Promise.reject('Voice not found');
+        }
+
+        const { locale, type } = selectedVoice;
+
+        const requestData = {
+            method: 'POST',
+            body: JSON.stringify({
+                input_text: userText,
+                locale,
+                voice: type,
+            }),
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/phonemes/xml`, requestData)
+            .then(response => response.blob())
+            .then(blob => downloadXML(blob))
+            .catch(() => {
+                commit('setError', 'Could not generate xml file');
+            });
+    },
+
+    simplifiedAudioStreamFromXml({ commit, getters, state: { xmlFile } }) {
+        commit('clearStream');
+        commit('bindLoader');
+        commit('setError', null);
+
+        const formData = new FormData();
+        formData.append('xml', xmlFile);
+
+        const selectedSpeechVoice = getters.selectedVoice;
+
+        if (selectedSpeechVoice) {
+            const { type, locale } = selectedSpeechVoice;
+
+            formData.append('locale', locale);
+            formData.append('voice', type);
+        }
+
+        const requestData = { method: "POST", body: formData };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice/simplify`, requestData)
+            .then(response => {
+                if (!response.ok) {
+                    commit('setError', 'Error simplifying the XML file'),
+                    clearChartData(commit);
+                }
+
+                return response.blob();
+            })
+            .then(blob => readAudioStream(commit, blob))
+            .catch(() => {
+                commit('bindLoader');
+                commit('setError', 'Invalid XML file.');
+                clearChartData(commit);
+            });
+    },
+
+    simplifiedGraphPhonemesFromXml({ commit, state: { xmlFile } }) {
+        const formData = new FormData();
+        formData.append('xml', xmlFile);
+
+        const requestData = { method: "POST", body: formData };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes/simplify`, requestData)
+            .then(response => {
+                if (!response.ok) {
+                    commit('setError', 'Error simplifying the XML file'),
+                    clearChartData(commit);
+                }
+
+                return response.json();
+            })
+            .then(data => commit('setPoints', gatherPoints(data)))
+            .catch(() => {
+                commit('setError', 'Invalid XML file.'),
+                clearChartData(commit);
+            });
+    },
+
+    generateAudioFromEditedPointsXml({ commit, getters, state }) {
+        const selectedVoice = getters.selectedVoice;
+        const { xmlFile, currentChart, phonemeNames, ms } = state;
+
+        if (!selectedVoice) {
+            return Promise.reject('Voice not found');
+        }
+
+        if (!currentChart) {
+            return Promise.reject('Chart not initialized')
+        }
+
+        commit('bindLoader');
+
+        const { locale, type } = selectedVoice;
+
+        const modifiers = []
+
+        for (const index in currentChart.data.datasets[0].data) {
+            const frequency = currentChart.data.datasets[0].data[index]
+            const time = ms[index]
+            const phonemeName = phonemeNames[index]
+
+            modifiers.push({
+                ms: time,
+                hertz: frequency,
+                phoneme_name: phonemeName
+            })
+        }
+
+        const requestData = {
+            method: 'POST',
+            body: JSON.stringify({
+                xml: xmlFile,
+                locale,
+                voice: type,
+                modifiers
+            }),
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes/xml/edited`, requestData)
+            .then(response => response.blob())
+            .then(blob => readAudioStream(commit, blob))
+            .catch(() => {
+                commit('bindLoader');
+                commit('setError', 'Could not process the edited points, try again later');
+            });
+    },
+
+
+    generateXmlFileFromXML({ commit, getters, state }) {
+        const selectedVoice = getters.selectedVoice;
+        const { xmlFile, currentChart, phonemeNames, ms } = state;
+
+        if (!selectedVoice) {
+            return Promise.reject('Voice not found');
+        }
+
+        if (!currentChart) {
+            return Promise.reject('Chart not initialized')
+        }
+
+        const { locale, type } = selectedVoice;
+
+
+        const modifiers = []
+
+        for (const index in currentChart.data.datasets[0].data) {
+            const frequency = currentChart.data.datasets[0].data[index]
+            const time = ms[index]
+            const phonemeName = phonemeNames[index]
+
+            modifiers.push({
+                ms: time,
+                hertz: frequency,
+                phoneme_name: phonemeName
+            })
+        }
+
+        const requestData = {
+            method: 'POST',
+            body: JSON.stringify({
+                xml: xmlFile,
+                locale,
+                voice: type,
+                modifiers
+            }),
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+            }
+        };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes/xml/edited`, requestData)
+            .then(response => response.blob())
+            .then(blob => downloadXML(blob))
+            .catch(() => {
+                commit('setError', 'Could not generate xml file');
+            });
+    },
 }
 
 const getters = {

@@ -79,7 +79,7 @@ def get_simplified_phonemes():
 
 @gateway_bp.route('/phonemes/xml', methods=['POST'])
 def get_xml_from_marytts():
-    form = MaryTTSForm(request.form, meta={'csrf': False})
+    form = MaryTTSForm(MultiDict(request.json), meta={'csrf': False})
 
     if not form.validate():
         abort(400, form.errors)
