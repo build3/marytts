@@ -101,14 +101,10 @@ const state = {
     errors: null,
     ms: null,
     chartDataset: null,
-    test: null,
+    modifiedPoints: [],
 }
 
 const mutations = {
-    setUpdatedPoint (state, value) {
-        state.test = value;
-    },
-
     bindLoader (state) {
         state.runLoader = !state.runLoader;
     },
@@ -173,16 +169,25 @@ const mutations = {
 
     setChartDataset(state, dataset) {
         state.chartDataset = dataset;
+    },
+
+    clearmodifiedPoints(state) {
+        state.modifiedPoints = [];
     }
 }
 
 const actions = {
-    updatePoint({ commit }, point) { 
-        commit('setUpdatedPoint', point)
-        console.log(point.x)
+    updatePoint({ state }, point) {
+
+        state.modifiedPoints.push({
+            ms: point.x,
+            hertz: point.y,
+            phonem: point.phonem
+        })
     },
 
     audioStream ({ commit, getters, state: { userText } }) {
+        commit('clearmodifiedPoints');
         commit('clearStream');
         const selectedSpeechVoice = getters.selectedVoice;
 
@@ -238,6 +243,7 @@ const actions = {
     },
 
     audioStreamFromXml({ commit, getters, state: { xmlFile } }) {
+        commit('clearmodifiedPoints')
         commit('clearStream');
         commit('bindLoader');
         commit('setError', null);
@@ -395,7 +401,7 @@ const actions = {
 
     generateAudioFromEditedPoints({ commit, getters, state }) {
         const selectedVoice = getters.selectedVoice;
-        const { userText, currentChart, phonemeNames, ms } = state;
+        const { userText, currentChart, phonemeNames, ms, modifiedPoints } = state;
 
         if (!selectedVoice) {
             return Promise.reject('Voice not found');
@@ -418,10 +424,21 @@ const actions = {
 
             modifiers.push({
                 ms: time,
-                hertz: frequency,
+                hertz: frequency.y,
                 phoneme_name: phonemeName
             })
         }
+
+        modifiers.map(item => {
+            let temp = Object.assign({}, item);
+            modifiedPoints.forEach(element => {
+                console.log(element.hertz)
+                if(temp.ms === element.ms) {
+                    temp.hertz = element.hertz
+                }
+                return temp;
+            });
+        });
 
         const requestData = {
             method: 'POST',
