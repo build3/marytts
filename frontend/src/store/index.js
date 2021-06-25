@@ -625,7 +625,7 @@ const actions = {
             }
         };
 
-        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes/xml/edited`, requestData)
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice/edited`, requestData)
             .then(response => response.blob())
             .then(blob => readAudioStream(commit, blob))
             .catch(() => {
