@@ -604,7 +604,7 @@ const actions = {
 
             modifiers.push({
                 ms: time,
-                hertz: frequency,
+                hertz: frequency.y,
                 phoneme_name: phonemeName
             })
         }
@@ -659,7 +659,7 @@ const actions = {
 
             modifiers.push({
                 ms: time,
-                hertz: frequency,
+                hertz: frequency.y,
                 phoneme_name: phonemeName
             })
         }
