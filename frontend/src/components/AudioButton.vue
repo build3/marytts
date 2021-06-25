@@ -24,7 +24,7 @@ export default {
     setup(props) {
         const store = useStore();
 
-        const chartColor = "#00d1b2";
+        const chartColor = computed(() => store.state.chartColor);
 
         const phonemeNames = computed(() => store.state.phonemeNames);
         const hertzPoints = computed(() => store.state.hertzPoints);
@@ -55,9 +55,10 @@ export default {
                     store.dispatch('updateChart');
                 } else {
                     const chart = generateChart({
-                        color: chartColor,
+                        color: chartColor.value,
                         ms,
                         dataset: chartDataset,
+                        editable: false
                     });
                     store.dispatch('setNewChart', chart);
                 }

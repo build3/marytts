@@ -114,6 +114,7 @@ const state = {
     ms: null,
     chartDataset: null,
     modifiedPoints: [],
+    chartColor: "#00d1b2",
 }
 
 const mutations = {
@@ -149,7 +150,6 @@ const mutations = {
     },
 
     updateChartData(state) {
-
         state.currentChart.data.datasets[0] = Object.assign(
             state.currentChart.data.datasets[0],
             { data: state.chartDataset },
@@ -157,6 +157,10 @@ const mutations = {
         );
 
         state.currentChart.update();
+    },
+
+    destroyChartData(state) {
+        state.currentChart.destroy();
     },
 
     setUserText(state, text) {
@@ -395,6 +399,10 @@ const actions = {
 
     updateChart({ commit }) {
         commit('updateChartData');
+    },
+
+    destroyChart({ commit }) {
+        commit('destroyChartData');
     },
 
     updateUserText({ commit }, text) {

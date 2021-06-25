@@ -59,9 +59,16 @@
 import { computed, ref } from "vue";
 import { useStore } from "vuex";
 
+import getChartGenerator from "../assets/scripts/phonemesChart.js";
+
 export default {
     setup() {
         const store = useStore();
+
+        const chartColor = computed(() => store.state.chartColor);
+        const ms = computed(() => store.state.ms)
+        const chartDataset = computed(() => store.state.chartDataset);
+        const generateChart = getChartGenerator();
 
         const simplifyModalShown = ref(false)
         const simplifiedVersionLoaded = ref(false)
@@ -91,12 +98,22 @@ export default {
         }
 
         async function generateAudio() {
+            store.dispatch('destroyChart');
+
             await Promise.all([
                 store.dispatch('simplifiedAudioStream'),
                 store.dispatch('simplifiedGraphPhonemes'),
             ])
 
-            store.dispatch('updateChart')
+            const chart = generateChart({
+                color: chartColor.value,
+                ms,
+                dataset: chartDataset,
+                editable: true
+            });
+
+            store.dispatch('setNewChart', chart);
+
             simplifiedVersionLoaded.value = true
             closeSimplifyModal()
         };
