@@ -67,6 +67,18 @@ const downloadXML = (blob) => {
     document.body.removeChild(fileLink);
 };
 
+const updateModifiers = (state, modifiers) => {
+    modifiers.forEach(modifier => {
+        const existingModifiedPoint = state.modifiedPoints.find(
+            ({ ms }) => ms === modifier.ms
+        )
+
+        if (existingModifiedPoint) {
+            modifier.hertz = existingModifiedPoint.hertz
+        }
+    })
+};
+
 const state = {
     stream: null,
     runLoader: false,
@@ -101,6 +113,8 @@ const state = {
     errors: null,
     ms: null,
     chartDataset: null,
+    modifiedPoints: [],
+    chartColor: "#00d1b2",
 }
 
 const mutations = {
@@ -136,7 +150,6 @@ const mutations = {
     },
 
     updateChartData(state) {
-
         state.currentChart.data.datasets[0] = Object.assign(
             state.currentChart.data.datasets[0],
             { data: state.chartDataset },
@@ -144,6 +157,10 @@ const mutations = {
         );
 
         state.currentChart.update();
+    },
+
+    destroyChartData(state) {
+        state.currentChart.destroy();
     },
 
     setUserText(state, text) {
@@ -168,11 +185,33 @@ const mutations = {
 
     setChartDataset(state, dataset) {
         state.chartDataset = dataset;
+    },
+
+    clearmodifiedPoints(state) {
+        state.modifiedPoints = [];
     }
 }
 
 const actions = {
+    updatePoint({state: { modifiedPoints }}, point) {
+        const existingPointIndex = modifiedPoints.findIndex(
+            ({ ms }) => ms === point.x
+        )
+
+        if (existingPointIndex >= 0) {
+            modifiedPoints[existingPointIndex].hertz = point.y
+            modifiedPoints[existingPointIndex].phonem = point.phonem
+        } else {
+            modifiedPoints.push({
+                ms: point.x,
+                hertz: point.y,
+                phonem: point.phonem
+            })
+        }
+    },
+
     audioStream ({ commit, getters, state: { userText } }) {
+        commit('clearmodifiedPoints');
         commit('clearStream');
         const selectedSpeechVoice = getters.selectedVoice;
 
@@ -228,6 +267,7 @@ const actions = {
     },
 
     audioStreamFromXml({ commit, getters, state: { xmlFile } }) {
+        commit('clearmodifiedPoints')
         commit('clearStream');
         commit('bindLoader');
         commit('setError', null);
@@ -361,6 +401,10 @@ const actions = {
         commit('updateChartData');
     },
 
+    destroyChart({ commit }) {
+        commit('destroyChartData');
+    },
+
     updateUserText({ commit }, text) {
         commit('setUserText', text);
     },
@@ -385,7 +429,7 @@ const actions = {
 
     generateAudioFromEditedPoints({ commit, getters, state }) {
         const selectedVoice = getters.selectedVoice;
-        const { userText, currentChart, phonemeNames, ms } = state;
+        const { userText, currentChart, phonemeNames, ms, modifiedPoints } = state;
 
         if (!selectedVoice) {
             return Promise.reject('Voice not found');
@@ -408,10 +452,12 @@ const actions = {
 
             modifiers.push({
                 ms: time,
-                hertz: frequency,
+                hertz: frequency.y,
                 phoneme_name: phonemeName
             })
         }
+
+        updateModifiers(state, modifiers);
 
         const requestData = {
             method: 'POST',
@@ -554,6 +600,8 @@ const actions = {
             })
         }
 
+        updateModifiers(state, modifiers);
+
         const requestData = {
             method: 'POST',
             body: JSON.stringify({
@@ -606,6 +654,8 @@ const actions = {
                 phoneme_name: phonemeName
             })
         }
+
+        updateModifiers(state, modifiers);
 
         const requestData = {
             method: 'POST',
@@ -675,7 +725,7 @@ const getters = {
 
     selectedVoice({ selectedVoiceId, voiceSet }) {
         return voiceSet.find(({ id }) => id === selectedVoiceId);
-    }
+    },
 }
 
 export default createStore({
