@@ -68,13 +68,19 @@ const downloadXML = (blob) => {
 };
 
 const updateModifiers = (state, modifiers) => {
-    modifiers.forEach(modifier => {
+    modifiers.forEach((modifier, modifierIndex) => {
         const existingModifiedPoint = state.modifiedPoints.find(
             ({ ms }) => ms === modifier.ms
         )
 
         if (existingModifiedPoint) {
             modifier.hertz = existingModifiedPoint.hertz
+        }
+
+        const previousModifierPhoneme = modifiers[modifierIndex - 1]?.phoneme_name
+
+        if (previousModifierPhoneme && !modifier.phoneme_name) {
+          modifier.phoneme_name = previousModifierPhoneme
         }
     })
 };
