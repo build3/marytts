@@ -569,7 +569,10 @@ const actions = {
 
                 return response.json();
             })
-            .then(data => commit('setPoints', gatherPoints(data)))
+            .then(data => {
+              commit('setPoints', gatherPoints(data))
+              commit('setChartDataset', createDataSet(state.hertzPoints, state.phonemeNames, state.ms))
+            })
             .catch(() => {
                 commit('setError', 'Invalid XML file.'),
                 clearChartData(commit);
