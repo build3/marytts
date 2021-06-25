@@ -518,6 +518,53 @@ const actions = {
             });
     },
 
+    generateSimplifiedXmlFileFromText({ commit, getters, state: { currentChart, ms, phonemeNames, userText } }) {
+        const selectedVoice = getters.selectedVoice;
+
+        if (!selectedVoice) {
+            return Promise.reject('Voice not found');
+        }
+
+        const { locale, type } = selectedVoice;
+
+        const modifiers = []
+
+        for (const index in currentChart.data.datasets[0].data) {
+            const frequency = currentChart.data.datasets[0].data[index]
+            const time = ms[index]
+            const phonemeName = phonemeNames[index]
+
+            modifiers.push({
+                ms: time,
+                hertz: frequency.y,
+                phoneme_name: phonemeName
+            })
+        }
+
+        updateModifiers(state, modifiers);
+
+        const formData = new FormData()
+        formData.append('input_text', userText)
+        formData.append('locale', locale)
+        formData.append('voice', type)
+        formData.append('modifiers', JSON.stringify(modifiers))
+
+        const requestData = {
+            method: 'POST',
+            body: formData,
+            headers: {
+                Accept: 'application/json',
+            }
+        };
+
+        return fetch(`${process.env.VUE_APP_API_URL}/phonemes/xml/edited`, requestData)
+            .then(response => response.blob())
+            .then(blob => downloadXML(blob))
+            .catch(() => {
+                commit('setError', 'Could not generate xml file');
+            });
+    },
+
     simplifiedAudioStreamFromXml({ commit, getters, state: { xmlFile } }) {
         commit('clearStream');
         commit('bindLoader');
