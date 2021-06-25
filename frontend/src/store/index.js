@@ -611,17 +611,17 @@ const actions = {
 
         updateModifiers(state, modifiers);
 
+        const formData = new FormData();
+        formData.append('xml', xmlFile);
+        formData.append('locale', locale);
+        formData.append('voice', type);
+        formData.append('modifiers', JSON.stringify(modifiers));
+
         const requestData = {
             method: 'POST',
-            body: JSON.stringify({
-                xml: xmlFile,
-                locale,
-                voice: type,
-                modifiers
-            }),
+            body: formData,
             headers: {
                 Accept: 'application/json',
-                'Content-Type': 'application/json'
             }
         };
 
@@ -666,17 +666,17 @@ const actions = {
 
         updateModifiers(state, modifiers);
 
+        const formData = new FormData();
+        formData.append('xml', xmlFile);
+        formData.append('locale', locale);
+        formData.append('voice', type);
+        formData.append('modifiers', JSON.stringify(modifiers));
+
         const requestData = {
             method: 'POST',
-            body: JSON.stringify({
-                xml: xmlFile,
-                locale,
-                voice: type,
-                modifiers
-            }),
+            body: formData,
             headers: {
                 Accept: 'application/json',
-                'Content-Type': 'application/json'
             }
         };
 
