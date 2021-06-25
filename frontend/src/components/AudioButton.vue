@@ -51,17 +51,13 @@ export default {
             }
 
             if (phonemeNames.value.length > 0 && hertzPoints.value.length > 0) {
-                if (currentChart.value) {
-                    store.dispatch('updateChart');
-                } else {
-                    const chart = generateChart({
-                        color: chartColor.value,
-                        ms,
-                        dataset: chartDataset,
-                        editable: false
-                    });
-                    store.dispatch('setNewChart', chart);
-                }
+                const chart = generateChart({
+                    color: chartColor.value,
+                    ms,
+                    dataset: chartDataset,
+                    editable: false
+                });
+                store.dispatch('setNewChart', chart);
             }
         };
 
