@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import { useStore } from "vuex";
 
 export default {
@@ -32,6 +32,7 @@ export default {
     setup() {
         const store = useStore();
 
+        const simplifiedVersionLoaded = inject('simplifiedVersionLoaded')
         const selectedVoiceId = computed(() => store.state.selectedVoiceId);
         const userText = computed(() => store.state.userText);
         const generateButtonDisabled = computed(() => !selectedVoiceId.value || !userText.value);
@@ -41,7 +42,11 @@ export default {
         }
 
         const generateXml = () => {
-            store.dispatch('generateXmlFileFromText')
+            if (simplifiedVersionLoaded.value) {
+              store.dispatch('generateSimplifiedXmlFileFromText')
+            } else {
+              store.dispatch('generateXmlFileFromText')
+            }
         };
 
         return {

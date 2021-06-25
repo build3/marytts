@@ -33,11 +33,19 @@
 </template>
 
 <script>
-import { computed } from "vue";
+import { computed, provide, ref } from "vue";
 import { useStore } from "vuex";
 
 export default {
     setup () {
+        const simplifiedVersionLoaded = ref(false)
+        const setSimplifiedVersionLoaded = (newSimplifiedVersionLoaded) => {
+            simplifiedVersionLoaded.value = newSimplifiedVersionLoaded
+        }
+
+        provide('simplifiedVersionLoaded', simplifiedVersionLoaded)
+        provide('setSimplifiedVersionLoaded', setSimplifiedVersionLoaded)
+
         const store = useStore();
 
         const stream = computed(() => store.state.stream);

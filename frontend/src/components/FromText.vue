@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { useStore } from "vuex";
 
 import getChartGenerator from "../assets/scripts/phonemesChart.js";
@@ -71,7 +71,8 @@ export default {
         const generateChart = getChartGenerator();
 
         const simplifyModalShown = ref(false)
-        const simplifiedVersionLoaded = ref(false)
+        const simplifiedVersionLoaded = inject('simplifiedVersionLoaded')
+        const setSimplifiedVersionLoaded = inject('setSimplifiedVersionLoaded')
 
         const getUserText = computed(() => store.state.userText);
         const setUserText = (({ target: { value } }) => store.dispatch('updateUserText', value));
@@ -114,7 +115,7 @@ export default {
 
             store.dispatch('setNewChart', chart);
 
-            simplifiedVersionLoaded.value = true
+            setSimplifiedVersionLoaded(true)
             closeSimplifyModal()
         };
 
@@ -123,7 +124,7 @@ export default {
         }
 
         function resetSimplifiedVersionLoaded() {
-            simplifiedVersionLoaded.value = false
+            setSimplifiedVersionLoaded(false)
         }
 
         function onRightButtonClick() {

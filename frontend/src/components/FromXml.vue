@@ -69,7 +69,7 @@
 </template>
 
 <script>
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
 import { useStore } from "vuex";
 
 import getChartGenerator from "../assets/scripts/phonemesChart.js";
@@ -84,7 +84,8 @@ export default {
         const generateChart = getChartGenerator();
 
         const simplifyModalShown = ref(false)
-        const simplifiedVersionLoaded = ref(false)
+        const simplifiedVersionLoaded = inject('simplifiedVersionLoaded')
+        const setSimplifiedVersionLoaded = inject('setSimplifiedVersionLoaded')
         const xmlFile = computed(() => store.state.xmlFile);
         const simplifyDisabled = computed(() => !store.state.stream);
 
@@ -116,7 +117,7 @@ export default {
         }
 
         function resetSimplifiedVersionLoaded() {
-            simplifiedVersionLoaded.value = false
+            setSimplifiedVersionLoaded(false)
         }
 
         function generateAudioFromEditedPoints() {
@@ -148,7 +149,7 @@ export default {
 
             store.dispatch('setNewChart', chart);
 
-            simplifiedVersionLoaded.value = true
+            setSimplifiedVersionLoaded(true)
             closeSimplifyModal()
         };
 
