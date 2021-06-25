@@ -68,16 +68,15 @@ const downloadXML = (blob) => {
 };
 
 const updateModifiers = (state, modifiers) => {
-    modifiers.map(item => {
-        let temp = Object.assign({}, item);
-        state.modifiedPoints.forEach(element => {
-            console.log(element.hertz)
-            if (temp.ms === element.ms) {
-                temp.hertz = element.hertz
-            }
-            return temp;
-        });
-    });
+    modifiers.forEach(modifier => {
+        const existingModifiedPoint = state.modifiedPoints.find(
+            ({ ms }) => ms === modifier.ms
+        )
+
+        if (existingModifiedPoint) {
+            modifier.hertz = existingModifiedPoint.hertz
+        }
+    })
 };
 
 const state = {
@@ -190,12 +189,21 @@ const mutations = {
 }
 
 const actions = {
-    updatePoint({ state }, point) {
-        state.modifiedPoints.push({
-            ms: point.x,
-            hertz: point.y,
-            phonem: point.phonem
-        })
+    updatePoint({state: { modifiedPoints }}, point) {
+        const existingPointIndex = modifiedPoints.findIndex(
+            ({ ms }) => ms === point.x
+        )
+
+        if (existingPointIndex >= 0) {
+            modifiedPoints[existingPointIndex].hertz = point.y
+            modifiedPoints[existingPointIndex].phonem = point.phonem
+        } else {
+            modifiedPoints.push({
+                ms: point.x,
+                hertz: point.y,
+                phonem: point.phonem
+            })
+        }
     },
 
     audioStream ({ commit, getters, state: { userText } }) {

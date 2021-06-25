@@ -1,9 +1,10 @@
 import Chart from "chart.js";
 import 'chartjs-plugin-dragdata';
 
-import actions from "../../store/index";
+import { useStore } from "vuex";
 
 const getChartGenerator = () => {
+    const store = useStore()
     return ({ dataset, ms, color, editable }) => {
         const chartName = document.getElementById('phonemesWave');
 
@@ -32,7 +33,7 @@ const getChartGenerator = () => {
                   // drags the datapoint
                 },
                 onDragEnd: function (event, datasetIndex, index, value) {
-                    actions.dispatch('updatePoint', value)
+                    store.dispatch('updatePoint', value)
                 },
                 maintainAspectRatio: false,
                 legend: {
