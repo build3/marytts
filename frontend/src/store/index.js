@@ -569,7 +569,10 @@ const actions = {
 
                 return response.json();
             })
-            .then(data => commit('setPoints', gatherPoints(data)))
+            .then(data => {
+              commit('setPoints', gatherPoints(data))
+              commit('setChartDataset', createDataSet(state.hertzPoints, state.phonemeNames, state.ms))
+            })
             .catch(() => {
                 commit('setError', 'Invalid XML file.'),
                 clearChartData(commit);
@@ -601,28 +604,28 @@ const actions = {
 
             modifiers.push({
                 ms: time,
-                hertz: frequency,
+                hertz: frequency.y,
                 phoneme_name: phonemeName
             })
         }
 
         updateModifiers(state, modifiers);
 
+        const formData = new FormData();
+        formData.append('xml', xmlFile);
+        formData.append('locale', locale);
+        formData.append('voice', type);
+        formData.append('modifiers', JSON.stringify(modifiers));
+
         const requestData = {
             method: 'POST',
-            body: JSON.stringify({
-                xml: xmlFile,
-                locale,
-                voice: type,
-                modifiers
-            }),
+            body: formData,
             headers: {
                 Accept: 'application/json',
-                'Content-Type': 'application/json'
             }
         };
 
-        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes/xml/edited`, requestData)
+        return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice/edited`, requestData)
             .then(response => response.blob())
             .then(blob => readAudioStream(commit, blob))
             .catch(() => {
@@ -656,24 +659,24 @@ const actions = {
 
             modifiers.push({
                 ms: time,
-                hertz: frequency,
+                hertz: frequency.y,
                 phoneme_name: phonemeName
             })
         }
 
         updateModifiers(state, modifiers);
 
+        const formData = new FormData();
+        formData.append('xml', xmlFile);
+        formData.append('locale', locale);
+        formData.append('voice', type);
+        formData.append('modifiers', JSON.stringify(modifiers));
+
         const requestData = {
             method: 'POST',
-            body: JSON.stringify({
-                xml: xmlFile,
-                locale,
-                voice: type,
-                modifiers
-            }),
+            body: formData,
             headers: {
                 Accept: 'application/json',
-                'Content-Type': 'application/json'
             }
         };
 
