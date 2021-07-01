@@ -166,7 +166,7 @@ const mutations = {
     },
 
     destroyChartData(state) {
-        state.currentChart.destroy();
+        state.currentChart?.destroy();
     },
 
     setUserText(state, text) {
@@ -400,6 +400,7 @@ const actions = {
     },
 
     setNewChart({ commit }, chart) {
+        commit('destroyChartData');
         commit('setCurrentChart', chart);
     },
 
