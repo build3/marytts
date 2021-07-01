@@ -24,9 +24,7 @@
             type="audio/wave" />
 
         <div class="chart-size-container">
-            <div class="chart-size">
-                <canvas id="phonemesWave"></canvas>
-            </div>
+            <div class="chart-size" id="main-chart-container" />
         </div>
     </section>
     <component :is="currentActiveTabFooter" :isStreamEmpty="isStreamEmpty" />

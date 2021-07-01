@@ -85,6 +85,30 @@ const updateModifiers = (state, modifiers) => {
     })
 };
 
+function transformChartDataSet(chartDataset) {
+  const transformedChartDataset = []
+
+  for (const pointIndex in chartDataset) {
+    const { x, y, phonem } = chartDataset[pointIndex]
+
+    if (phonem) {
+      transformChartDataSet.push({
+        ms: x,
+        hertz: y,
+        phoneme_name: phonem
+      })
+    } else {
+      transformChartDataSet.push({
+        ms: x,
+        hertz: y,
+        phoneme_name: transformChartDataSet[pointIndex - 1]?.phoneme_name
+      })
+    }
+  }
+
+  return transformedChartDataset
+}
+
 const state = {
     stream: null,
     runLoader: false,
@@ -195,6 +219,10 @@ const mutations = {
 
     clearmodifiedPoints(state) {
         state.modifiedPoints = [];
+    },
+
+    updateDatasetPoint(state, { pointIndex, pointValue }) {
+        state.chartDataset[pointIndex].y = pointValue
     }
 }
 
@@ -436,35 +464,17 @@ const actions = {
 
     generateAudioFromEditedPoints({ commit, getters, state }) {
         const selectedVoice = getters.selectedVoice;
-        const { userText, currentChart, phonemeNames, ms, modifiedPoints } = state;
+        const { userText, chartDataset } = state;
 
         if (!selectedVoice) {
             return Promise.reject('Voice not found');
-        }
-
-        if (!currentChart) {
-            return Promise.reject('Chart not initialized')
         }
 
         commit('bindLoader');
 
         const { locale, type } = selectedVoice;
 
-        const modifiers = []
-
-        for (const index in currentChart.data.datasets[0].data) {
-            const frequency = currentChart.data.datasets[0].data[index]
-            const time = ms[index]
-            const phonemeName = phonemeNames[index]
-
-            modifiers.push({
-                ms: time,
-                hertz: frequency.y,
-                phoneme_name: phonemeName
-            })
-        }
-
-        updateModifiers(state, modifiers);
+        const requestChartDataSet = transformChartDataSet(chartDataset) 
 
         const requestData = {
             method: 'POST',
@@ -472,7 +482,7 @@ const actions = {
                 input_text: userText,
                 locale,
                 voice: type,
-                modifiers
+                modifiers: requestChartDataSet
             }),
             headers: {
                 Accept: 'application/json',
@@ -735,6 +745,10 @@ const actions = {
                 commit('setError', 'Could not generate xml file');
             });
     },
+
+    updateDatasetPoint({ commit }, { pointIndex, pointValue }) {
+      commit('updateDatasetPoint', { pointIndex, pointValue })
+    }
 }
 
 const getters = {
