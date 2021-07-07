@@ -1,807 +1,906 @@
-import { createStore } from 'vuex';
+import { defineStore } from 'pinia'
+import { transformProcessBlobToStream, transformRawVoiceTypes } from './helpers'
 
-export const textTab = 'text';
-export const xmlTab = 'xml';
+export const textTab = 'text'
+export const xmlTab = 'xml'
 
-const gatherPoints = ((data) => data.reduce((acc, { phoneme_name, hertz, ms }) => {
-    const [lastPhoneme] = acc[0].slice(-1);
-    const [lastHertz] = acc[1].slice(-1);
-    const [nextPhoneme] = acc[0].filter(phoneme => phoneme !== '').slice(-1)
+// const gatherPoints = data =>
+//   data.reduce(
+//     (acc, { phoneme_name: phonemeName, hertz, ms }) => {
+//       const [lastPhoneme] = acc[0].slice(-1)
+//       const [lastHertz] = acc[1].slice(-1)
+//       const [nextPhoneme] = acc[0].filter(phoneme => phoneme !== '').slice(-1)
+//
+//       const isLastHertz = lastHertz === hertz
+//       const isLastPhoneme = lastPhoneme === phonemeName
+//       const isNextPhoneme = nextPhoneme === phonemeName
+//
+//       if (!isLastHertz || !isLastPhoneme) {
+//         if (isNextPhoneme) {
+//           return [
+//             [...acc[0], ''],
+//             [...acc[1], hertz],
+//             [...acc[2], ms],
+//           ]
+//         }
+//
+//         return [
+//           [...acc[0], phonemeName],
+//           [...acc[1], hertz],
+//           [...acc[2], ms],
+//         ]
+//       }
+//
+//       return acc
+//     },
+//     [[], [], []],
+//   )
+//
+// const createDataSet = (hertz, phonems, ms) => {
+//   return ms.map((msValue, i) => ({
+//     x: msValue,
+//     y: hertz[i],
+//     phonem: phonems[i],
+//   }))
+// }
+//
+// const readAudioStream = (commit, blob) => {
+//   const reader = new FileReader()
+//   reader.onloadend = () => {
+//     commit('setStream', reader.result)
+//   }
+//   reader.readAsDataURL(blob)
+//
+//   commit('bindLoader')
+// }
+//
+// const clearChartData = commit => {
+//   commit('clearPhonemesData')
+//   commit('clearStream')
+//   commit('enableAudioButton')
+// }
+//
+// const downloadXML = blob => {
+//   const fileURL = window.URL.createObjectURL(blob)
+//   const fileLink = document.createElement('a')
+//   fileLink.href = fileURL
+//   fileLink.setAttribute('download', 'MaryTTS.xml')
+//   document.body.appendChild(fileLink)
+//   fileLink.click()
+//   fileLink.style.display = 'none'
+//
+//   window.URL.revokeObjectURL(fileURL)
+//   document.body.removeChild(fileLink)
+// }
+//
+// function transformChartDataSet(chartDataset) {
+//   return chartDataset.reduce(
+//     (accumulatedDataset, { x, y, phonem }, dataIndex) => {
+//       const phonemeName =
+//         phonem ?? accumulatedDataset[dataIndex - 1]?.phoneme_name
+//
+//       return [
+//         ...accumulatedDataset,
+//         {
+//           ms: x,
+//           hertz: y,
+//           phoneme_name: phonemeName,
+//         },
+//       ]
+//     },
+//     [],
+//   )
+// }
+//
+// const state = {
+//   stream: null,
+//   runLoader: false,
+//   phonemeNames: null,
+//   hertzPoints: null,
+//   voiceSet: [
+//     { id: 1, locale: 'te', type: 'cmu-nk-hsmm', sex: 'female' },
+//     { id: 2, locale: 'sv', type: 'stts-sv-hb-hsmm', sex: 'male' },
+//     { id: 3, locale: 'tr', type: 'dfki-ot-hsmm', sex: 'male' },
+//     { id: 3, locale: 'de', type: 'dfki-pavoque-neutral-hsmm', sex: 'male' },
+//     { id: 4, locale: 'de', type: 'bits3-hsmm', sex: 'male' },
+//     { id: 5, locale: 'de', type: 'bits1-hsmm', sex: 'female' },
+//     { id: 6, locale: 'fr', type: 'upmc-pierre-hsmm', sex: 'male' },
+//     { id: 7, locale: 'fr', type: 'upmc-jessica-hsmm', sex: 'female' },
+//     { id: 8, locale: 'fr', type: 'enst-dennys-hsmm', sex: 'male' },
+//     { id: 9, locale: 'fr', type: 'enst-camille-hsmm', sex: 'female' },
+//     { id: 10, locale: 'it', type: 'istc-lucia-hsmm', sex: 'female' },
+//     { id: 11, locale: 'en_US', type: 'cmu-slt-hsmm', sex: 'female' },
+//     { id: 12, locale: 'en_US', type: 'cmu-rms-hsmm', sex: 'male' },
+//     { id: 13, locale: 'en_US', type: 'cmu-bdl-hsmm', sex: 'male' },
+//     { id: 14, locale: 'en_GB', type: 'dfki-spike-hsmm', sex: 'male' },
+//     { id: 15, locale: 'en_GB', type: 'dfki-prudence-hsmm', sex: 'female' },
+//     { id: 16, locale: 'en_GB', type: 'dfki-poppy-hsmm', sex: 'female' },
+//     { id: 17, locale: 'en_GB', type: 'dfki-obadiah-hsmm', sex: 'male' },
+//     { id: 18, locale: 'ru', type: 'ac-irina-hsmm', sex: 'female' },
+//   ],
+//   currentActiveTab: textTab,
+//   xmlFile: null,
+//   userText: '',
+//   selectedVoiceId: null,
+//   errors: null,
+//   ms: null,
+//   chartDataset: null,
+//   modifiedPoints: [],
+//   chartColor: '#00d1b2',
+// }
+//
+// const mutations = {
+//   bindLoader(currentState) {
+//     currentState.runLoader = !currentState.runLoader
+//   },
+//
+//   setStream(currentState, newStream) {
+//     currentState.stream = newStream
+//   },
+//
+//   clearStream(currentState) {
+//     currentState.stream = null
+//   },
+//
+//   setPoints(currentState, [phonemeName, hertz, ms]) {
+//     currentState.phonemeNames = phonemeName
+//     currentState.hertzPoints = hertz
+//     currentState.ms = ms
+//   },
+//
+//   clearPhonemesData(currentState) {
+//     currentState.phonemeNames = null
+//     currentState.hertzPoints = null
+//   },
+//
+//   setTab(currentState, tab) {
+//     currentState.currentActiveTab = tab
+//   },
+//
+//   setUserText(currentState, text) {
+//     currentState.userText = text
+//   },
+//
+//   setSelectedVoice(currentState, voice) {
+//     currentState.selectedVoiceId = parseInt(voice, 10)
+//   },
+//
+//   setXmlFile(currentState, xmlFile) {
+//     currentState.xmlFile = xmlFile
+//   },
+//
+//   setError(currentState, errors) {
+//     currentState.errors = errors
+//   },
+//
+//   enableAudioButton(currentState) {
+//     currentState.runLoader = false
+//   },
+//
+//   setChartDataset(currentState, dataset) {
+//     currentState.chartDataset = dataset
+//   },
+//
+//   clearmodifiedPoints(currentState) {
+//     currentState.modifiedPoints = []
+//   },
+//
+//   updateDatasetPoint(currentState, { pointIndex, pointValue }) {
+//     currentState.chartDataset[pointIndex].y = pointValue
+//   },
+// }
+//
+// const actions = {
+//   updatePoint({ state: { modifiedPoints } }, point) {
+//     const existingPointIndex = modifiedPoints.findIndex(
+//       ({ ms }) => ms === point.x,
+//     )
+//
+//     if (existingPointIndex >= 0) {
+//       modifiedPoints[existingPointIndex].hertz = point.y
+//       modifiedPoints[existingPointIndex].phonem = point.phonem
+//     } else {
+//       modifiedPoints.push({
+//         ms: point.x,
+//         hertz: point.y,
+//         phonem: point.phonem,
+//       })
+//     }
+//   },
+//
+//   audioStream({ commit, getters, state: { userText } }) {
+//     commit('clearmodifiedPoints')
+//     commit('clearStream')
+//     const selectedSpeechVoice = getters.selectedVoice
+//
+//     if (selectedSpeechVoice) {
+//       commit('bindLoader')
+//       const { type, locale } = selectedSpeechVoice
+//
+//       const requestSearchParams = new URLSearchParams({
+//         INPUT_TEXT: encodeURIComponent(userText),
+//         INPUT_TYPE: 'TEXT',
+//         LOCALE: locale,
+//         VOICE: type,
+//         OUTPUT_TYPE: 'AUDIO',
+//         AUDIO: 'WAVE',
+//       })
+//
+//       const requestData = {
+//         method: 'GET',
+//       }
+//
+//       return fetch(`/mtts/process?${requestSearchParams}`, requestData)
+//         .then(response => response.blob())
+//         .then(blob => readAudioStream(commit, blob))
+//     }
+//
+//     return Promise.reject()
+//   },
+//
+//   graphPhonemes({ commit, getters, state: { userText } }) {
+//     commit('clearPhonemesData')
+//
+//     const selectedSpeechVoice = getters.selectedVoice
+//
+//     if (selectedSpeechVoice) {
+//       const { type, locale } = selectedSpeechVoice
+//
+//       const requestData = {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//           input_text: userText,
+//           locale,
+//           voice: type,
+//         }),
+//       }
+//
+//       return fetch(`${process.env.VUE_APP_API_URL}/phonemes`, requestData)
+//         .then(response => response.json())
+//         .then(data => {
+//           commit('setPoints', gatherPoints(data))
+//           commit(
+//             'setChartDataset',
+//             createDataSet(state.hertzPoints, state.phonemeNames, state.ms),
+//           )
+//         })
+//     }
+//
+//     return Promise.reject()
+//   },
+//
+//   audioStreamFromXml({ commit, getters, state: { xmlFile } }) {
+//     commit('clearmodifiedPoints')
+//     commit('clearStream')
+//     commit('bindLoader')
+//     commit('setError', null)
+//
+//     const formData = new FormData()
+//     formData.append('xml', xmlFile)
+//
+//     const selectedSpeechVoice = getters.selectedVoice
+//
+//     if (selectedSpeechVoice) {
+//       const { type, locale } = selectedSpeechVoice
+//
+//       formData.append('locale', locale)
+//       formData.append('voice', type)
+//     }
+//
+//     const requestData = { method: 'POST', body: formData }
+//
+//     return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice`, requestData)
+//       .then(response => {
+//         if (!response.ok) {
+//           commit('setError', 'Error genereting audio from the XML file')
+//           clearChartData(commit)
+//         }
+//
+//         return response.blob()
+//       })
+//       .then(blob => readAudioStream(commit, blob))
+//       .catch(() => {
+//         commit('bindLoader')
+//         commit('setError', 'Invalid XML file.')
+//       })
+//   },
+//
+//   graphPhonemesFromXml({ commit, state: { xmlFile } }) {
+//     const formData = new FormData()
+//     formData.append('xml', xmlFile)
+//
+//     const requestData = { method: 'POST', body: formData }
+//
+//     return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes`, requestData)
+//       .then(response => {
+//         if (!response.ok) {
+//           commit('setError', 'Error genereting phonems from the XML file')
+//           clearChartData(commit)
+//         }
+//
+//         return response.json()
+//       })
+//       .then(data => {
+//         commit('setPoints', gatherPoints(data))
+//         commit(
+//           'setChartDataset',
+//           createDataSet(state.hertzPoints, state.phonemeNames, state.ms),
+//         )
+//       })
+//       .catch(() => commit('setError', 'Invalid XML file.'))
+//   },
+//
+//   simplifiedAudioStream({ commit, getters, state: { userText } }) {
+//     commit('clearStream')
+//     const selectedSpeechVoice = getters.selectedVoice
+//
+//     if (selectedSpeechVoice) {
+//       commit('bindLoader')
+//       const { type, locale } = selectedSpeechVoice
+//
+//       const requestData = {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//           input_text: userText,
+//           locale,
+//           voice: type,
+//         }),
+//       }
+//
+//       return fetch(
+//         `${process.env.VUE_APP_API_URL}/audio-voice/simplify`,
+//         requestData,
+//       )
+//         .then(response => response.blob())
+//         .then(blob => readAudioStream(commit, blob))
+//         .catch(() => {
+//           commit('setError', 'The sound cannot be simplified')
+//           clearChartData(commit)
+//         })
+//     }
+//
+//     return Promise.reject()
+//   },
+//
+//   simplifiedGraphPhonemes({ commit, getters, state: { userText } }) {
+//     commit('clearPhonemesData')
+//
+//     const selectedSpeechVoice = getters.selectedVoice
+//
+//     if (selectedSpeechVoice) {
+//       const { type, locale } = selectedSpeechVoice
+//
+//       const requestData = {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//           input_text: userText,
+//           locale,
+//           voice: type,
+//         }),
+//       }
+//
+//       return fetch(
+//         `${process.env.VUE_APP_API_URL}/phonemes/simplify`,
+//         requestData,
+//       )
+//         .then(response => response.json())
+//         .then(data => {
+//           commit('setPoints', gatherPoints(data))
+//           commit(
+//             'setChartDataset',
+//             createDataSet(state.hertzPoints, state.phonemeNames, state.ms),
+//           )
+//         })
+//         .catch(() => {
+//           commit('setError', 'The graph cannot be simplified')
+//           clearChartData(commit)
+//         })
+//     }
+//
+//     return Promise.reject()
+//   },
+//
+//   changeTab({ commit }, tab) {
+//     commit('setError', null)
+//     commit('setTab', tab)
+//   },
+//
+//   updateUserText({ commit }, text) {
+//     commit('setUserText', text)
+//   },
+//
+//   updateSelectedVoice({ commit }, voice) {
+//     commit('setSelectedVoice', voice)
+//   },
+//
+//   updateXmlFile({ commit }, xmlFile) {
+//     commit('setXmlFile', xmlFile)
+//   },
+//
+//   playStream({ state: { stream } }) {
+//     const audioElement = document.querySelector('audio')
+//
+//     if (stream && audioElement) {
+//       audioElement.currentTime = 0
+//       audioElement.play()
+//     }
+//   },
+//
+//   generateAudioFromEditedPoints({
+//     commit,
+//     getters,
+//     state: { userText, chartDataset },
+//   }) {
+//     const { selectedVoice } = getters
+//
+//     if (!selectedVoice) {
+//       return Promise.reject(new Error('Voice not found'))
+//     }
+//
+//     commit('bindLoader')
+//
+//     const { locale, type } = selectedVoice
+//
+//     const requestChartDataSet = transformChartDataSet(chartDataset)
+//
+//     const requestData = {
+//       method: 'POST',
+//       body: JSON.stringify({
+//         input_text: userText,
+//         locale,
+//         voice: type,
+//         modifiers: requestChartDataSet,
+//       }),
+//       headers: {
+//         Accept: 'application/json',
+//         'Content-Type': 'application/json',
+//       },
+//     }
+//
+//     return fetch(
+//       `${process.env.VUE_APP_API_URL}/audio-voice/edited`,
+//       requestData,
+//     )
+//       .then(response => response.blob())
+//       .then(blob => readAudioStream(commit, blob))
+//       .catch(() => {
+//         commit('bindLoader')
+//         commit(
+//           'setError',
+//           'Could not process the edited points, try again later',
+//         )
+//       })
+//   },
+//
+//   generateXmlFileFromText({ commit, getters, state: { userText } }) {
+//     const { selectedVoice } = getters
+//
+//     if (!selectedVoice) {
+//       return Promise.reject(new Error('Voice not found'))
+//     }
+//
+//     const { locale, type } = selectedVoice
+//
+//     const requestData = {
+//       method: 'POST',
+//       body: JSON.stringify({
+//         input_text: userText,
+//         locale,
+//         voice: type,
+//       }),
+//       headers: {
+//         Accept: 'application/json',
+//         'Content-Type': 'application/json',
+//       },
+//     }
+//
+//     return fetch(`${process.env.VUE_APP_API_URL}/phonemes/xml`, requestData)
+//       .then(response => response.blob())
+//       .then(blob => downloadXML(blob))
+//       .catch(() => {
+//         commit('setError', 'Could not generate xml file')
+//       })
+//   },
+//
+//   generateSimplifiedXmlFileFromText({
+//     commit,
+//     getters,
+//     state: { chartDataset, userText },
+//   }) {
+//     const { selectedVoice } = getters
+//
+//     if (!selectedVoice) {
+//       return Promise.reject(new Error('Voice not found'))
+//     }
+//
+//     const { locale, type } = selectedVoice
+//
+//     const requestChartDataSet = transformChartDataSet(chartDataset)
+//
+//     const formData = new FormData()
+//     formData.append('input_text', userText)
+//     formData.append('locale', locale)
+//     formData.append('voice', type)
+//     formData.append('modifiers', JSON.stringify(requestChartDataSet))
+//
+//     const requestData = {
+//       method: 'POST',
+//       body: formData,
+//       headers: {
+//         Accept: 'application/json',
+//       },
+//     }
+//
+//     return fetch(
+//       `${process.env.VUE_APP_API_URL}/phonemes/xml/edited`,
+//       requestData,
+//     )
+//       .then(response => response.blob())
+//       .then(blob => downloadXML(blob))
+//       .catch(() => {
+//         commit('setError', 'Could not generate xml file')
+//       })
+//   },
+//
+//   simplifiedAudioStreamFromXml({ commit, getters, state: { xmlFile } }) {
+//     commit('clearStream')
+//     commit('bindLoader')
+//     commit('setError', null)
+//
+//     const formData = new FormData()
+//     formData.append('xml', xmlFile)
+//
+//     const selectedSpeechVoice = getters.selectedVoice
+//
+//     if (selectedSpeechVoice) {
+//       const { type, locale } = selectedSpeechVoice
+//
+//       formData.append('locale', locale)
+//       formData.append('voice', type)
+//     }
+//
+//     const requestData = { method: 'POST', body: formData }
+//
+//     return fetch(
+//       `${process.env.VUE_APP_API_URL}/xml/audio-voice/simplify`,
+//       requestData,
+//     )
+//       .then(response => {
+//         if (!response.ok) {
+//           commit('setError', 'Error simplifying the XML file')
+//           clearChartData(commit)
+//         }
+//
+//         return response.blob()
+//       })
+//       .then(blob => readAudioStream(commit, blob))
+//       .catch(() => {
+//         commit('bindLoader')
+//         commit('setError', 'Invalid XML file.')
+//         clearChartData(commit)
+//       })
+//   },
+//
+//   simplifiedGraphPhonemesFromXml({ commit, state: { xmlFile } }) {
+//     const formData = new FormData()
+//     formData.append('xml', xmlFile)
+//
+//     const requestData = { method: 'POST', body: formData }
+//
+//     return fetch(
+//       `${process.env.VUE_APP_API_URL}/xml/phonemes/simplify`,
+//       requestData,
+//     )
+//       .then(response => {
+//         if (!response.ok) {
+//           commit('setError', 'Error simplifying the XML file')
+//           clearChartData(commit)
+//         }
+//
+//         return response.json()
+//       })
+//       .then(data => {
+//         commit('setPoints', gatherPoints(data))
+//         commit(
+//           'setChartDataset',
+//           createDataSet(state.hertzPoints, state.phonemeNames, state.ms),
+//         )
+//       })
+//       .catch(() => {
+//         commit('setError', 'Invalid XML file.')
+//         clearChartData(commit)
+//       })
+//   },
+//
+//   generateAudioFromEditedPointsXml({
+//     commit,
+//     getters,
+//     state: { xmlFile, chartDataset },
+//   }) {
+//     const { selectedVoice } = getters
+//
+//     if (!selectedVoice) {
+//       return Promise.reject(new Error('Voice not found'))
+//     }
+//
+//     commit('bindLoader')
+//
+//     const { locale, type } = selectedVoice
+//
+//     const requestChartDataSet = transformChartDataSet(chartDataset)
+//
+//     const formData = new FormData()
+//     formData.append('xml', xmlFile)
+//     formData.append('locale', locale)
+//     formData.append('voice', type)
+//     formData.append('modifiers', JSON.stringify(requestChartDataSet))
+//
+//     const requestData = {
+//       method: 'POST',
+//       body: formData,
+//       headers: {
+//         Accept: 'application/json',
+//       },
+//     }
+//
+//     return fetch(
+//       `${process.env.VUE_APP_API_URL}/xml/audio-voice/edited`,
+//       requestData,
+//     )
+//       .then(response => response.blob())
+//       .then(blob => readAudioStream(commit, blob))
+//       .catch(() => {
+//         commit('bindLoader')
+//         commit(
+//           'setError',
+//           'Could not process the edited points, try again later',
+//         )
+//       })
+//   },
+//
+//   generateXmlFileFromXML({
+//     commit,
+//     getters,
+//     state: { xmlFile, chartDataset },
+//   }) {
+//     const { selectedVoice } = getters
+//
+//     if (!selectedVoice) {
+//       return Promise.reject(new Error('Voice not found'))
+//     }
+//
+//     const { locale, type } = selectedVoice
+//
+//     const requestChartDataSet = transformChartDataSet(chartDataset)
+//
+//     const formData = new FormData()
+//     formData.append('xml', xmlFile)
+//     formData.append('locale', locale)
+//     formData.append('voice', type)
+//     formData.append('modifiers', JSON.stringify(requestChartDataSet))
+//
+//     const requestData = {
+//       method: 'POST',
+//       body: formData,
+//       headers: {
+//         Accept: 'application/json',
+//       },
+//     }
+//
+//     return fetch(
+//       `${process.env.VUE_APP_API_URL}/xml/phonemes/xml/edited`,
+//       requestData,
+//     )
+//       .then(response => response.blob())
+//       .then(blob => downloadXML(blob))
+//       .catch(() => {
+//         commit('setError', 'Could not generate xml file')
+//       })
+//   },
+//
+//   updateDatasetPoint({ commit }, { pointIndex, pointValue }) {
+//     commit('updateDatasetPoint', { pointIndex, pointValue })
+//   },
+// }
+//
+// const getters = {
+//   toggleLoader(currentState) {
+//     return currentState.runLoader ? 'is-loading' : ''
+//   },
+//
+//   maryttsXmlUrl({ voiceSet, selectedVoiceId, userText }) {
+//     if (!selectedVoiceId || !userText) {
+//       return ''
+//     }
+//
+//     const voice = voiceSet.find(({ id }) => id === selectedVoiceId)
+//
+//     if (!voice) {
+//       return ''
+//     }
+//
+//     const { locale, type } = voice
+//
+//     const searchParams = new URLSearchParams({
+//       input_text: userText,
+//       locale,
+//       voice: type,
+//     })
+//
+//     return `${process.env.VUE_APP_API_URL}/phonemes/xml?${searchParams}`
+//   },
+//
+//   currentActiveTabComponent({ currentActiveTab }) {
+//     switch (currentActiveTab) {
+//       case textTab:
+//         return 'from-text'
+//       case xmlTab:
+//         return 'from-xml'
+//       default:
+//         return null
+//     }
+//   },
+//
+//   currentActiveTabFooter({ currentActiveTab }) {
+//     switch (currentActiveTab) {
+//       case textTab:
+//         return 'from-text-footer'
+//       case xmlTab:
+//         return 'from-xml-footer'
+//       default:
+//         return null
+//     }
+//   },
+//
+//   selectedVoice({ selectedVoiceId, voiceSet }) {
+//     return voiceSet.find(({ id }) => id === selectedVoiceId)
+//   },
+// }
 
-    const isLastHertz = lastHertz === hertz;
-    const isLastPhoneme = lastPhoneme === phoneme_name;
-    const isNextPhoneme = nextPhoneme === phoneme_name;
+const useStore = defineStore({
+  id: 'main',
 
-    if (!isLastHertz || !isLastPhoneme) {
-        if (isNextPhoneme) {
-            return [
-                [...acc[0], ''],
-                [...acc[1], hertz],
-                [...acc[2], ms],
-            ]
-        }
-
-        return [
-            [...acc[0], phoneme_name],
-            [...acc[1], hertz],
-            [...acc[2], ms],
-        ]
-    }
-
-    return acc;
-}, [[], [], []]));
-
-const createDataSet = ((hertz, phonems, ms) => {
-    return ms.map((ms, i) => ({
-        x: ms,
-        y: hertz[i],
-        phonem: phonems[i],
-    }));
-});
-
-const readAudioStream = ((commit, blob) => {
-    const reader = new FileReader();
-    reader.onloadend = (() => commit('setStream', reader.result));
-    reader.readAsDataURL(blob);
-
-    commit('bindLoader');
-});
-
-const clearChartData = ((commit) => {
-    commit('clearPhonemesData');
-    commit('clearStream');
-    commit('updateChartData');
-    commit('enableAudioButton');
-});
-
-const downloadXML = (blob) => {
-    const fileURL = window.URL.createObjectURL(blob);
-    const fileLink = document.createElement('a');
-    fileLink.href = fileURL;
-    fileLink.setAttribute('download', 'MaryTTS.xml');
-    document.body.appendChild(fileLink);
-    fileLink.click();
-    fileLink.style.display = 'none';
-
-    window.URL.revokeObjectURL(fileURL);
-    document.body.removeChild(fileLink);
-};
-
-const updateModifiers = (state, modifiers) => {
-    modifiers.forEach((modifier, modifierIndex) => {
-        const existingModifiedPoint = state.modifiedPoints.find(
-            ({ ms }) => ms === modifier.ms
-        )
-
-        if (existingModifiedPoint) {
-            modifier.hertz = existingModifiedPoint.hertz
-        }
-
-        const previousModifierPhoneme = modifiers[modifierIndex - 1]?.phoneme_name
-
-        if (previousModifierPhoneme && !modifier.phoneme_name) {
-          modifier.phoneme_name = previousModifierPhoneme
-        }
-    })
-};
-
-function transformChartDataSet(chartDataset) {
-  const transformedChartDataset = []
-
-  for (const pointIndex in chartDataset) {
-    const { x, y, phonem } = chartDataset[pointIndex]
-
-    if (phonem) {
-      transformChartDataSet.push({
-        ms: x,
-        hertz: y,
-        phoneme_name: phonem
-      })
-    } else {
-      transformChartDataSet.push({
-        ms: x,
-        hertz: y,
-        phoneme_name: transformChartDataSet[pointIndex - 1]?.phoneme_name
-      })
-    }
-  }
-
-  return transformedChartDataset
-}
-
-const state = {
-    stream: null,
-    runLoader: false,
-    phonemeNames: null,
-    hertzPoints: null,
-    voiceSet: [
-        { id:1, locale: 'te', type: 'cmu-nk-hsmm', sex: 'female'},
-        { id:2, locale: 'sv', type: 'stts-sv-hb-hsmm', sex: 'male'},
-        { id:3, locale: 'tr', type: 'dfki-ot-hsmm', sex: 'male'},
-        { id:3, locale: 'de', type: 'dfki-pavoque-neutral-hsmm', sex: 'male'},
-        { id:4, locale: 'de', type: 'bits3-hsmm', sex: 'male'},
-        { id:5, locale: 'de', type: 'bits1-hsmm', sex: 'female'},
-        { id:6, locale: 'fr', type: 'upmc-pierre-hsmm', sex: 'male'},
-        { id:7, locale: 'fr', type: 'upmc-jessica-hsmm', sex: 'female'},
-        { id:8, locale: 'fr', type: 'enst-dennys-hsmm', sex: 'male'},
-        { id:9, locale: 'fr', type: 'enst-camille-hsmm', sex: 'female'},
-        { id:10, locale: 'it', type: 'istc-lucia-hsmm', sex: 'female'},
-        { id:11, locale: 'en_US', type: 'cmu-slt-hsmm', sex: 'female'},
-        { id:12, locale: 'en_US', type: 'cmu-rms-hsmm', sex: 'male'},
-        { id:13, locale: 'en_US', type: 'cmu-bdl-hsmm', sex: 'male'},
-        { id:14, locale: 'en_GB', type: 'dfki-spike-hsmm', sex: 'male'},
-        { id:15, locale: 'en_GB', type: 'dfki-prudence-hsmm', sex: 'female'},
-        { id:16, locale: 'en_GB', type: 'dfki-poppy-hsmm', sex: 'female'},
-        { id:17, locale: 'en_GB', type: 'dfki-obadiah-hsmm', sex: 'male'},
-        { id:18, locale: 'ru', type: 'ac-irina-hsmm', sex: 'female'},
-    ],
-    currentActiveTab: textTab,
-    currentChart: null,
-    xmlFile: null,
+  state: () => ({
     userText: '',
-    selectedVoiceId: null,
-    errors: null,
-    ms: null,
-    chartDataset: null,
-    modifiedPoints: [],
-    chartColor: "#00d1b2",
-}
+    stream: null,
+    xmlFile: null,
+    voiceTypes: [],
+    selectedVoiceType: null,
+    dataset: null,
+    chartColor: '#00d1b2',
+    error: {
+      fetchVoices: null,
+    },
+  }),
 
-const mutations = {
-    bindLoader (state) {
-        state.runLoader = !state.runLoader;
+  actions: {
+    async fetchVoices() {
+      try {
+        const voiceTypesResponse = await fetch('/mtts/voices')
+        const rawWoiceTypes = await voiceTypesResponse.text()
+
+        this.voiceTypes = transformRawVoiceTypes(rawWoiceTypes)
+      } catch {
+        this.voiceTypes = []
+      }
     },
 
-    setStream(state, newStream) {
-        state.stream = newStream;
+    async getAudioStream() {
+      this.stream = null
+
+      try {
+        const { type, locale } = this.selectedVoice
+
+        if (!type || !locale) {
+          return
+        }
+
+        const requestSearchParams = new URLSearchParams({
+          INPUT_TEXT: encodeURIComponent(this.userText),
+          INPUT_TYPE: 'TEXT',
+          LOCALE: locale,
+          VOICE: type,
+          OUTPUT_TYPE: 'AUDIO',
+          AUDIO: 'WAVE',
+        })
+
+        const requestData = {
+          method: 'GET',
+        }
+
+        const processResponse = await fetch(
+          `/mtts/process?${requestSearchParams}`,
+          requestData,
+        )
+        const processBlob = await processResponse.blob()
+
+        this.stream = await transformProcessBlobToStream(processBlob)
+      } catch {
+        this.stream = null
+      }
     },
 
-    clearStream(state) {
-        state.stream = null;
-    },
+    async getAudioPhonemes() {
+      this.dataset = null
 
-    setPoints(state, [phoneme_name, hertz, ms]) {
-        state.phonemeNames = phoneme_name;
-        state.hertzPoints = hertz;
-        state.ms = ms
-    },
+      try {
+        const { type, locale } = this.selectedVoice
 
-    clearPhonemesData(state) {
-        state.phonemeNames = null;
-        state.hertzPoints = null;
-    },
+        if (!type || !locale) {
+          return
+        }
 
-    setTab(state, tab) {
-        state.currentActiveTab = tab;
-    },
+        const requestSearchParams = new URLSearchParams({
+          INPUT_TEXT: encodeURIComponent(this.userText),
+          INPUT_TYPE: 'TEXT',
+          LOCALE: locale,
+          VOICE: type,
+          OUTPUT_TYPE: 'ACOUSTPARAMS',
+        })
 
-    setCurrentChart(state, chart) {
-        state.currentChart = chart;
-    },
+        const requestData = {
+          method: 'GET',
+        }
 
-    updateChartData(state) {
-        state.currentChart.data.datasets[0] = Object.assign(
-            state.currentChart.data.datasets[0],
-            { data: state.chartDataset },
-            {},
-        );
-
-        state.currentChart.update();
-    },
-
-    destroyChartData(state) {
-        state.currentChart?.destroy();
-    },
-
-    setUserText(state, text) {
-        state.userText = text;
-    },
-
-    setSelectedVoice(state, voice) {
-        state.selectedVoiceId = parseInt(voice);
-    },
-
-    setXmlFile(state, xmlFile) {
-        state.xmlFile = xmlFile;
-    },
-
-    setError(state, errors) {
-        state.errors = errors;
-    },
-
-    enableAudioButton(state) {
-        state.runLoader = false;
-    },
-
-    setChartDataset(state, dataset) {
-        state.chartDataset = dataset;
-    },
-
-    clearmodifiedPoints(state) {
-        state.modifiedPoints = [];
-    },
-
-    updateDatasetPoint(state, { pointIndex, pointValue }) {
-        state.chartDataset[pointIndex].y = pointValue
-    }
-}
-
-const actions = {
-    updatePoint({state: { modifiedPoints }}, point) {
-        const existingPointIndex = modifiedPoints.findIndex(
-            ({ ms }) => ms === point.x
+        const processResponse = await fetch(
+          `/mtts/process?${requestSearchParams}`,
+          requestData,
         )
 
-        if (existingPointIndex >= 0) {
-            modifiedPoints[existingPointIndex].hertz = point.y
-            modifiedPoints[existingPointIndex].phonem = point.phonem
-        } else {
-            modifiedPoints.push({
-                ms: point.x,
-                hertz: point.y,
-                phonem: point.phonem
-            })
+        const processAcoustParamsXml = await processResponse.text()
+
+        const parser = new DOMParser()
+
+        const acoustParamsDocument = parser.parseFromString(
+          processAcoustParamsXml.replace(/<\/?maryxml.+>/g, ''),
+          'text/xml',
+        )
+
+        const evaluator = new XPathEvaluator()
+
+        const expression = evaluator.createExpression('//ph')
+
+        const phonemesNodes = expression.evaluate(
+          acoustParamsDocument,
+          XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+        )
+
+        console.info(phonemesNodes.snapshotLength)
+
+        for (
+          let phonemeIndex = 0;
+          phonemeIndex < phonemesNodes.snapshotLength;
+          phonemeIndex += 1
+        ) {
+          const phonemeNode = phonemesNodes.snapshotItem(phonemeIndex)
+
+          console.info(phonemeNode)
         }
+      } catch (err) {
+        console.warn(err)
+        this.dataset = null
+      }
     },
 
-    audioStream ({ commit, getters, state: { userText } }) {
-        commit('clearmodifiedPoints');
-        commit('clearStream');
-        const selectedSpeechVoice = getters.selectedVoice;
-
-        if (selectedSpeechVoice) {
-            commit('bindLoader');
-            const { type, locale } = selectedSpeechVoice;
-
-            const requestData = {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    input_text: userText,
-                    locale: locale,
-                    voice: type,
-                })
-            };
-
-            return fetch(`${process.env.VUE_APP_API_URL}/audio-voice`, requestData)
-                .then(response => response.blob())
-                .then(blob => readAudioStream(commit, blob));
-            }
-
-        return Promise.reject();
+    updateDatasetPoint({ pointIndex, pointValue: chartY }) {
+      if (pointIndex in this.dataset) {
+        this.dataset[pointIndex] = chartY
+      }
     },
 
-    graphPhonemes({ commit, getters, state: { userText } }) {
-        commit('clearPhonemesData');
-
-        const selectedSpeechVoice = getters.selectedVoice;
-
-        if (selectedSpeechVoice) {
-            const { type, locale } = selectedSpeechVoice;
-
-            const requestData = {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    input_text: userText,
-                    locale: locale,
-                    voice: type,
-                })
-            };
-
-            return fetch(`${process.env.VUE_APP_API_URL}/phonemes`, requestData)
-                .then(response => response.json())
-                .then(data => {
-                    commit('setPoints', gatherPoints(data)),
-                    commit('setChartDataset', createDataSet(state.hertzPoints, state.phonemeNames, state.ms))
-                })
-        }
-
-        return Promise.reject();
+    setSeletectedVoiceType(newVoiceType) {
+      this.selectedVoiceType = newVoiceType
     },
+  },
 
-    audioStreamFromXml({ commit, getters, state: { xmlFile } }) {
-        commit('clearmodifiedPoints')
-        commit('clearStream');
-        commit('bindLoader');
-        commit('setError', null);
-
-        const formData = new FormData();
-        formData.append('xml', xmlFile);
-
-        const selectedSpeechVoice = getters.selectedVoice;
-
-        if (selectedSpeechVoice) {
-            const { type, locale } = selectedSpeechVoice;
-
-            formData.append('locale', locale);
-            formData.append('voice', type);
-        }
-
-        const requestData = { method: "POST", body: formData };
-
-        return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice`, requestData)
-            .then(response => {
-                if (!response.ok) {
-                    commit('setError', 'Error genereting audio from the XML file'),
-                    clearChartData(commit);
-                }
-
-                return response.blob();
-            })
-            .then(blob => readAudioStream(commit, blob))
-            .catch(() => {
-                commit('bindLoader');
-                commit('setError', 'Invalid XML file.');
-            });
+  getters: {
+    selectedVoice() {
+      return this.voiceTypes.find(({ type }) => type === this.selectedVoiceType)
     },
-
-    graphPhonemesFromXml({ commit, state: { xmlFile } }) {
-        const formData = new FormData();
-        formData.append('xml', xmlFile);
-
-        const requestData = { method: "POST", body: formData };
-
-        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes`, requestData)
-            .then(response => {
-                if (!response.ok) {
-                    commit('setError', 'Error genereting phonems from the XML file'),
-                    clearChartData(commit);
-                }
-
-                return response.json();
-            })
-            .then(data => {
-                commit('setPoints', gatherPoints(data)),
-                commit('setChartDataset', createDataSet(state.hertzPoints, state.phonemeNames, state.ms))
-            })
-            .catch(() => commit('setError', 'Invalid XML file.'));
-    },
-
-    simplifiedAudioStream({ commit, getters, state: { userText } }) {
-        commit('clearStream');
-        const selectedSpeechVoice = getters.selectedVoice;
-
-        if (selectedSpeechVoice) {
-            commit('bindLoader');
-            const { type, locale } = selectedSpeechVoice;
-
-            const requestData = {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    input_text: userText,
-                    locale: locale,
-                    voice: type,
-                })
-            };
-
-            return fetch(`${process.env.VUE_APP_API_URL}/audio-voice/simplify`, requestData)
-                .then(response => response.blob())
-                .then(blob => readAudioStream(commit, blob))
-                .catch(() => {
-                    commit('setError', 'The sound cannot be simplified');
-                    clearChartData(commit);
-                });
-        }
-
-        return Promise.reject();
-    },
-    
-
-    simplifiedGraphPhonemes({ commit, getters, state: { userText } }) {
-        commit('clearPhonemesData');
-
-        const selectedSpeechVoice = getters.selectedVoice;
-
-        if (selectedSpeechVoice) {
-            const { type, locale } = selectedSpeechVoice;
-
-            const requestData = {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    input_text: userText,
-                    locale: locale,
-                    voice: type,
-                })
-            };
-
-            return fetch(`${process.env.VUE_APP_API_URL}/phonemes/simplify`, requestData)
-                .then(response => response.json())
-                .then(data => {
-                    commit('setPoints', gatherPoints(data)),
-                    commit('setChartDataset', createDataSet(state.hertzPoints, state.phonemeNames, state.ms))
-                })
-                .catch(() =>  {
-                    commit('setError', 'The graph cannot be simplified');
-                    clearChartData(commit);
-                });
-        }
-
-        return Promise.reject();
-    },
-
-    changeTab({ commit }, tab) {
-        commit('setError', null);
-        commit('setTab', tab);
-    },
-
-    setNewChart({ commit }, chart) {
-        commit('destroyChartData');
-        commit('setCurrentChart', chart);
-    },
-
-    updateChart({ commit }) {
-        commit('updateChartData');
-    },
-
-    destroyChart({ commit }) {
-        commit('destroyChartData');
-    },
-
-    updateUserText({ commit }, text) {
-        commit('setUserText', text);
-    },
-
-    updateSelectedVoice({ commit }, voice) {
-        commit('setSelectedVoice', voice);
-    },
-
-    updateXmlFile({ commit }, xmlFile) {
-        commit('setXmlFile', xmlFile);
-    },
-
-    playStream({ state }) {
-        const { stream } = state
-        const audioElement = document.querySelector('audio')
-
-        if (stream && audioElement) {
-            audioElement.currentTime = 0
-            audioElement.play()
-        }
-    },
-
-    generateAudioFromEditedPoints({ commit, getters, state }) {
-        const selectedVoice = getters.selectedVoice;
-        const { userText, chartDataset } = state;
-
-        if (!selectedVoice) {
-            return Promise.reject('Voice not found');
-        }
-
-        commit('bindLoader');
-
-        const { locale, type } = selectedVoice;
-
-        const requestChartDataSet = transformChartDataSet(chartDataset) 
-
-        const requestData = {
-            method: 'POST',
-            body: JSON.stringify({
-                input_text: userText,
-                locale,
-                voice: type,
-                modifiers: requestChartDataSet
-            }),
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            }
-        };
-
-        return fetch(`${process.env.VUE_APP_API_URL}/audio-voice/edited`, requestData)
-            .then(response => response.blob())
-            .then(blob => readAudioStream(commit, blob))
-            .catch(() => {
-                commit('bindLoader');
-                commit('setError', 'Could not process the edited points, try again later');
-            });
-    },
-
-    generateXmlFileFromText({ commit, getters, state: { userText } }) {
-        const selectedVoice = getters.selectedVoice;
-
-        if (!selectedVoice) {
-            return Promise.reject('Voice not found');
-        }
-
-        const { locale, type } = selectedVoice;
-
-        const requestData = {
-            method: 'POST',
-            body: JSON.stringify({
-                input_text: userText,
-                locale,
-                voice: type,
-            }),
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            }
-        };
-
-        return fetch(`${process.env.VUE_APP_API_URL}/phonemes/xml`, requestData)
-            .then(response => response.blob())
-            .then(blob => downloadXML(blob))
-            .catch(() => {
-                commit('setError', 'Could not generate xml file');
-            });
-    },
-
-    generateSimplifiedXmlFileFromText({ commit, getters, state: { currentChart, ms, phonemeNames, userText } }) {
-        const selectedVoice = getters.selectedVoice;
-
-        if (!selectedVoice) {
-            return Promise.reject('Voice not found');
-        }
-
-        const { locale, type } = selectedVoice;
-
-        const modifiers = []
-
-        for (const index in currentChart.data.datasets[0].data) {
-            const frequency = currentChart.data.datasets[0].data[index]
-            const time = ms[index]
-            const phonemeName = phonemeNames[index]
-
-            modifiers.push({
-                ms: time,
-                hertz: frequency.y,
-                phoneme_name: phonemeName
-            })
-        }
-
-        updateModifiers(state, modifiers);
-
-        const formData = new FormData()
-        formData.append('input_text', userText)
-        formData.append('locale', locale)
-        formData.append('voice', type)
-        formData.append('modifiers', JSON.stringify(modifiers))
-
-        const requestData = {
-            method: 'POST',
-            body: formData,
-            headers: {
-                Accept: 'application/json',
-            }
-        };
-
-        return fetch(`${process.env.VUE_APP_API_URL}/phonemes/xml/edited`, requestData)
-            .then(response => response.blob())
-            .then(blob => downloadXML(blob))
-            .catch(() => {
-                commit('setError', 'Could not generate xml file');
-            });
-    },
-
-    simplifiedAudioStreamFromXml({ commit, getters, state: { xmlFile } }) {
-        commit('clearStream');
-        commit('bindLoader');
-        commit('setError', null);
-
-        const formData = new FormData();
-        formData.append('xml', xmlFile);
-
-        const selectedSpeechVoice = getters.selectedVoice;
-
-        if (selectedSpeechVoice) {
-            const { type, locale } = selectedSpeechVoice;
-
-            formData.append('locale', locale);
-            formData.append('voice', type);
-        }
-
-        const requestData = { method: "POST", body: formData };
-
-        return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice/simplify`, requestData)
-            .then(response => {
-                if (!response.ok) {
-                    commit('setError', 'Error simplifying the XML file'),
-                    clearChartData(commit);
-                }
-
-                return response.blob();
-            })
-            .then(blob => readAudioStream(commit, blob))
-            .catch(() => {
-                commit('bindLoader');
-                commit('setError', 'Invalid XML file.');
-                clearChartData(commit);
-            });
-    },
-
-    simplifiedGraphPhonemesFromXml({ commit, state: { xmlFile } }) {
-        const formData = new FormData();
-        formData.append('xml', xmlFile);
-
-        const requestData = { method: "POST", body: formData };
-
-        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes/simplify`, requestData)
-            .then(response => {
-                if (!response.ok) {
-                    commit('setError', 'Error simplifying the XML file'),
-                    clearChartData(commit);
-                }
-
-                return response.json();
-            })
-            .then(data => {
-              commit('setPoints', gatherPoints(data))
-              commit('setChartDataset', createDataSet(state.hertzPoints, state.phonemeNames, state.ms))
-            })
-            .catch(() => {
-                commit('setError', 'Invalid XML file.'),
-                clearChartData(commit);
-            });
-    },
-
-    generateAudioFromEditedPointsXml({ commit, getters, state }) {
-        const selectedVoice = getters.selectedVoice;
-        const { xmlFile, currentChart, phonemeNames, ms } = state;
-
-        if (!selectedVoice) {
-            return Promise.reject('Voice not found');
-        }
-
-        if (!currentChart) {
-            return Promise.reject('Chart not initialized')
-        }
-
-        commit('bindLoader');
-
-        const { locale, type } = selectedVoice;
-
-        const modifiers = []
-
-        for (const index in currentChart.data.datasets[0].data) {
-            const frequency = currentChart.data.datasets[0].data[index]
-            const time = ms[index]
-            const phonemeName = phonemeNames[index]
-
-            modifiers.push({
-                ms: time,
-                hertz: frequency.y,
-                phoneme_name: phonemeName
-            })
-        }
-
-        updateModifiers(state, modifiers);
-
-        const formData = new FormData();
-        formData.append('xml', xmlFile);
-        formData.append('locale', locale);
-        formData.append('voice', type);
-        formData.append('modifiers', JSON.stringify(modifiers));
-
-        const requestData = {
-            method: 'POST',
-            body: formData,
-            headers: {
-                Accept: 'application/json',
-            }
-        };
-
-        return fetch(`${process.env.VUE_APP_API_URL}/xml/audio-voice/edited`, requestData)
-            .then(response => response.blob())
-            .then(blob => readAudioStream(commit, blob))
-            .catch(() => {
-                commit('bindLoader');
-                commit('setError', 'Could not process the edited points, try again later');
-            });
-    },
-
-
-    generateXmlFileFromXML({ commit, getters, state }) {
-        const selectedVoice = getters.selectedVoice;
-        const { xmlFile, currentChart, phonemeNames, ms } = state;
-
-        if (!selectedVoice) {
-            return Promise.reject('Voice not found');
-        }
-
-        if (!currentChart) {
-            return Promise.reject('Chart not initialized')
-        }
-
-        const { locale, type } = selectedVoice;
-
-
-        const modifiers = []
-
-        for (const index in currentChart.data.datasets[0].data) {
-            const frequency = currentChart.data.datasets[0].data[index]
-            const time = ms[index]
-            const phonemeName = phonemeNames[index]
-
-            modifiers.push({
-                ms: time,
-                hertz: frequency.y,
-                phoneme_name: phonemeName
-            })
-        }
-
-        updateModifiers(state, modifiers);
-
-        const formData = new FormData();
-        formData.append('xml', xmlFile);
-        formData.append('locale', locale);
-        formData.append('voice', type);
-        formData.append('modifiers', JSON.stringify(modifiers));
-
-        const requestData = {
-            method: 'POST',
-            body: formData,
-            headers: {
-                Accept: 'application/json',
-            }
-        };
-
-        return fetch(`${process.env.VUE_APP_API_URL}/xml/phonemes/xml/edited`, requestData)
-            .then(response => response.blob())
-            .then(blob => downloadXML(blob))
-            .catch(() => {
-                commit('setError', 'Could not generate xml file');
-            });
-    },
-
-    updateDatasetPoint({ commit }, { pointIndex, pointValue }) {
-      commit('updateDatasetPoint', { pointIndex, pointValue })
-    }
-}
-
-const getters = {
-    toggleLoader(state) {
-        return state.runLoader ? 'is-loading': '';
-    },
-
-    maryttsXmlUrl({ voiceSet, selectedVoiceId, userText }) {
-        if (!selectedVoiceId || !userText) {
-            return '';
-        }
-
-        const voice = voiceSet.find(({ id }) => id === selectedVoiceId);
-
-        if (!voice) {
-            return '';
-        }
-
-        const { locale, type } = voice;
-
-        const searchParams = new URLSearchParams({
-            input_text: userText,
-            locale,
-            voice: type,
-        });
-
-        return `${process.env.VUE_APP_API_URL}/phonemes/xml?${searchParams}`;
-    },
-
-    currentActiveTabComponent({ currentActiveTab }) {
-        switch (currentActiveTab) {
-            case textTab: return 'from-text'
-            case xmlTab: return 'from-xml'
-            default: return null
-        }
-    },
-
-    currentActiveTabFooter({ currentActiveTab }) {
-        switch (currentActiveTab) {
-            case textTab: return 'from-text-footer'
-            case xmlTab: return 'from-xml-footer'
-            default: return null
-        }
-    },
-
-    selectedVoice({ selectedVoiceId, voiceSet }) {
-        return voiceSet.find(({ id }) => id === selectedVoiceId);
-    },
-}
-
-export default createStore({
-    state,
-    mutations,
-    actions,
-    getters,
+  },
 })
+
+export default useStore

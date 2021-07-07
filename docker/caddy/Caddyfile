@@ -1,0 +1,9 @@
+:8080
+
+encode zstd gzip
+
+handle_path /mtts/* {
+  reverse_proxy mtts-marytts:59125
+}
+
+reverse_proxy * mtts-frontend:8080

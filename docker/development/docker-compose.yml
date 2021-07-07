@@ -22,16 +22,24 @@ services:
 
   mtts-frontend:
     environment:
+      - VUE_APP_MARYTTS_URL=http://localhost:59125
       - VUE_APP_API_URL=http://localhost:8000
     restart: "no"
     image: node:12
-    ports:
-      - "8080:8080"
+    expose:
+      - 8080
     command: "./tools/run-development.sh"
     working_dir: /app
     volumes:
       - "../../frontend:/app"
       - "mtts-node_modules:/app/node_modules"
+
+  mtts-reverse-proxy:
+    image: caddy:2.4.3-alpine
+    volumes:
+      - ../caddy/Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - 8080:8080
 
 volumes:
   mtts-pip-cache:

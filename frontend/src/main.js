@@ -1,34 +1,37 @@
-import { createApp } from "vue";
+/* eslint-disable import/no-extraneous-dependencies */
 
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { faUpload } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { createApp } from 'vue'
 
-import App from './App.vue';
-import store from './store';
-import Tabs from './components/Tabs.vue';
-import FromXml from './components/FromXml.vue';
-import AudioButton from './components/AudioButton.vue';
-import FromText from './components/FromText.vue';
-import VoiceSelect from './components/VoiceSelect.vue';
-import FromXmlFooter from './components/FromXmlFooter.vue';
-import FromTextFooter from './components/FromTextFooter.vue';
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faUpload } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { createPinia } from 'pinia'
 
-import './assets/styles/main.scss';
+import App from './App.vue'
+import Tabs from './components/Tabs.vue'
+import FromXml from './components/FromXml.vue'
+import AudioButton from './components/AudioButton.vue'
+import FromText from './components/FromText.vue'
+import VoiceSelect from './components/VoiceSelect.vue'
+import FromXmlFooter from './components/FromXmlFooter.vue'
+import FromTextFooter from './components/FromTextFooter.vue'
 
-library.add(faUpload);
+import './assets/styles/main.scss'
 
-const app = createApp(App);
+library.add(faUpload)
 
-app.component('mary-tabs', Tabs);
-app.component('from-xml', FromXml);
-app.component('audio-button', AudioButton);
-app.component('from-text', FromText);
-app.component('voice-select', VoiceSelect);
-app.component('from-text-footer', FromTextFooter);
-app.component('from-xml-footer', FromXmlFooter);
+const app = createApp(App)
 
-app.component('font-awesome-icon', FontAwesomeIcon);
+app.use(createPinia())
 
-app.use(store);
-app.mount("#app");
+app.component('MaryTabs', Tabs)
+app.component('FromXml', FromXml)
+app.component('AudioButton', AudioButton)
+app.component('FromText', FromText)
+app.component('VoiceSelect', VoiceSelect)
+app.component('FromTextFooter', FromTextFooter)
+app.component('FromXmlFooter', FromXmlFooter)
+
+app.component('FontAwesomeIcon', FontAwesomeIcon)
+
+app.mount('#app')

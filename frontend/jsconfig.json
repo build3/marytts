@@ -1,0 +1,13 @@
+{
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "target": "es2020",
+    "baseUrl": "."
+  }
+}
