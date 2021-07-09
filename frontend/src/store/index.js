@@ -1,5 +1,12 @@
-import { defineStore } from 'pinia'
-import { transformProcessBlobToStream, transformRawVoiceTypes } from './helpers'
+/* eslint-disable no-unused-vars */
+import { inject, reactive } from 'vue'
+import { createStore } from './createStore'
+import {
+  transformAcoustParamsXmlToPhrases,
+  transformPhraseNodesToDataset,
+  transformProcessBlobToStream,
+  transformRawVoiceTypes,
+} from './helpers'
 
 export const textTab = 'text'
 export const xmlTab = 'xml'
@@ -760,16 +767,18 @@ export const xmlTab = 'xml'
 //   },
 // }
 
-const useStore = defineStore({
-  id: 'main',
-
+const store = createStore({
   state: () => ({
     userText: '',
+    dataset: null,
     stream: null,
     xmlFile: null,
     voiceTypes: [],
     selectedVoiceType: null,
-    dataset: null,
+    beginDocumentTags: '',
+    endDocumentTags: '',
+    acoustParamsDocument: null,
+    phraseNodes: [],
     chartColor: '#00d1b2',
     error: {
       fetchVoices: null,
@@ -778,13 +787,16 @@ const useStore = defineStore({
 
   actions: {
     async fetchVoices() {
+      this.error.fetchVoices = null
+
       try {
         const voiceTypesResponse = await fetch('/mtts/voices')
-        const rawWoiceTypes = await voiceTypesResponse.text()
+        const rawVoiceTypes = await voiceTypesResponse.text()
 
-        this.voiceTypes = transformRawVoiceTypes(rawWoiceTypes)
-      } catch {
+        this.voiceTypes = transformRawVoiceTypes(rawVoiceTypes)
+      } catch (error) {
         this.voiceTypes = []
+        this.error.fetchVoices = error.message
       }
     },
 
@@ -799,7 +811,7 @@ const useStore = defineStore({
         }
 
         const requestSearchParams = new URLSearchParams({
-          INPUT_TEXT: encodeURIComponent(this.userText),
+          INPUT_TEXT: this.userText,
           INPUT_TYPE: 'TEXT',
           LOCALE: locale,
           VOICE: type,
@@ -824,7 +836,10 @@ const useStore = defineStore({
     },
 
     async getAudioPhonemes() {
-      this.dataset = null
+      this.beginDocumentTags = ''
+      this.endDocumentTags = ''
+      this.acoustParamsDocument = null
+      this.phraseNodes = []
 
       try {
         const { type, locale } = this.selectedVoice
@@ -834,7 +849,7 @@ const useStore = defineStore({
         }
 
         const requestSearchParams = new URLSearchParams({
-          INPUT_TEXT: encodeURIComponent(this.userText),
+          INPUT_TEXT: this.userText,
           INPUT_TYPE: 'TEXT',
           LOCALE: locale,
           VOICE: type,
@@ -852,36 +867,15 @@ const useStore = defineStore({
 
         const processAcoustParamsXml = await processResponse.text()
 
-        const parser = new DOMParser()
-
-        const acoustParamsDocument = parser.parseFromString(
-          processAcoustParamsXml.replace(/<\/?maryxml.+>/g, ''),
-          'text/xml',
+        Object.assign(
+          this,
+          transformAcoustParamsXmlToPhrases(processAcoustParamsXml),
         )
-
-        const evaluator = new XPathEvaluator()
-
-        const expression = evaluator.createExpression('//ph')
-
-        const phonemesNodes = expression.evaluate(
-          acoustParamsDocument,
-          XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-        )
-
-        console.info(phonemesNodes.snapshotLength)
-
-        for (
-          let phonemeIndex = 0;
-          phonemeIndex < phonemesNodes.snapshotLength;
-          phonemeIndex += 1
-        ) {
-          const phonemeNode = phonemesNodes.snapshotItem(phonemeIndex)
-
-          console.info(phonemeNode)
-        }
       } catch (err) {
-        console.warn(err)
-        this.dataset = null
+        this.beginDocumentTags = ''
+        this.endDocumentTags = ''
+        this.acoustParamsDocument = null
+        this.phraseNodes = []
       }
     },
 
@@ -890,17 +884,17 @@ const useStore = defineStore({
         this.dataset[pointIndex] = chartY
       }
     },
-
-    setSeletectedVoiceType(newVoiceType) {
-      this.selectedVoiceType = newVoiceType
-    },
   },
 
   getters: {
     selectedVoice() {
       return this.voiceTypes.find(({ type }) => type === this.selectedVoiceType)
     },
+
+    dataset() {
+      return transformPhraseNodesToDataset(this.phraseNodes)
+    },
   },
 })
 
-export default useStore
+export default store

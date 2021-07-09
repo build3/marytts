@@ -5,6 +5,10 @@
     </div>
   </nav>
   <section class="is-flex is-flex-direction-column is-align-items-stretch px-5">
+    <div class="notification is-danger" v-if="hasAnyError">
+      <button class="delete"></button>
+      {{ firstError }}
+    </div>
     <mary-tabs />
 
     <component :is="currentActiveTabComponent" />
@@ -27,7 +31,8 @@
 
 <script>
 import { computed, onMounted, provide, ref } from 'vue'
-import useStore, { textTab } from './store'
+import { textTab } from './store'
+import { useStore } from './store/createStore'
 
 export default {
   setup() {
@@ -61,6 +66,10 @@ export default {
         : 'from-xml-footer',
     )
 
+    const errors = computed(() => store.error)
+    const firstError = computed(() => Object.values(errors.value)[0])
+    const hasAnyError = computed(() => Boolean(firstError.value))
+
     onMounted(() => {
       store.fetchVoices()
     })
@@ -70,6 +79,8 @@ export default {
       isStreamEmpty,
       currentActiveTabComponent,
       currentActiveTabFooter,
+      firstError,
+      hasAnyError,
     }
   },
 }

@@ -2,7 +2,7 @@
   <div class="field my-4">
     <div class="control">
       <div class="select is-fullwidth is-primary">
-        <select @change="setSeletectedVoice" :value="selectedVoiceType">
+        <select v-model="selectedVoiceType">
           <option :value="null" disabled>Select voice</option>
           <option
             :value="type"
@@ -18,24 +18,21 @@
 </template>
 
 <script>
-import { computed } from 'vue'
-import useStore from '../store'
+import { computed, toRef } from 'vue'
+import { useStore } from '../store/createStore'
 
 export default {
   setup() {
     const store = useStore()
 
     const voiceTypes = computed(() => store.voiceTypes)
-    const selectedVoiceType = computed(() => store.selectedVoiceType)
 
-    const setSeletectedVoice = ({ target: { value: newVoiceType } }) => {
-      store.setSeletectedVoiceType(newVoiceType)
-    }
+    const selectedVoiceType = toRef(store, 'selectedVoiceType')
 
     return {
       voiceTypes,
+      store,
       selectedVoiceType,
-      setSeletectedVoice,
     }
   },
 }

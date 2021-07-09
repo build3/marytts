@@ -22,7 +22,7 @@
 
 <script>
 import { computed } from 'vue'
-import useStore from '../store'
+import { useStore } from '../store/createStore'
 
 export default {
   props: {

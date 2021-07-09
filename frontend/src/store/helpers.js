@@ -18,6 +18,13 @@ export function transformRawVoiceTypes(rawVoiceTypes) {
       }
     })
     .filter(rawVoiceType => Boolean(rawVoiceType))
+    .sort((voiceA, voiceB) => {
+      const voiceLocaleCompare = voiceA.locale.localeCompare(voiceB.locale)
+      const voiceSexCompare = voiceA.sex.localeCompare(voiceB.sex)
+      const voiceTypeCompare = voiceA.type.localeCompare(voiceB.type)
+
+      return voiceLocaleCompare || voiceSexCompare || voiceTypeCompare
+    })
 }
 
 export function transformProcessBlobToStream(processBlob) {
@@ -34,4 +41,171 @@ export function transformProcessBlobToStream(processBlob) {
 
     reader.readAsDataURL(processBlob)
   })
+}
+
+export function transformAcoustParamsXmlToPhrases(rawAcoustParamsXml) {
+  const parser = new DOMParser()
+
+  const [, beginDocumentTags, documentContent, endDocumentTags] =
+    rawAcoustParamsXml.match(
+      /(<\?xml.+?><maryxml.+?>)([\s\S]+?)(<\/maryxml>)/m,
+    ) ?? []
+
+  const acoustParamsDocument = parser.parseFromString(
+    documentContent.trim(),
+    'text/xml',
+  )
+
+  const evaluator = new XPathEvaluator()
+
+  const expression = evaluator.createExpression('//phrase')
+
+  const phraseNodesResult = expression.evaluate(
+    acoustParamsDocument,
+    XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+  )
+
+  const phraseNodes = []
+
+  for (
+    let phraseIndex = 0;
+    phraseIndex < phraseNodesResult.snapshotLength;
+    phraseIndex += 1
+  ) {
+    const phraseNode = phraseNodesResult.snapshotItem(phraseIndex)
+
+    phraseNodes.push(phraseNode)
+  }
+
+  return {
+    beginDocumentTags,
+    endDocumentTags,
+    acoustParamsDocument,
+    phraseNodes,
+  }
+}
+
+export function transformPhraseNodesToDataset(phraseNodes) {
+  const evaluator = new XPathEvaluator()
+  const phonemeExpression = evaluator.createExpression(
+    'descendant::ph | descendant::boundary',
+  )
+
+  return phraseNodes
+    .reduce((accumulatedDataset, phraseNode, phraseNodeIndex) => {
+      const phonemeNodesResult = phonemeExpression.evaluate(
+        phraseNode,
+        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      )
+
+      const previousPhraseData = accumulatedDataset[phraseNodeIndex - 1]
+      const phonemesList = []
+
+      for (
+        let phonemeIndex = 0;
+        phonemeIndex < phonemeNodesResult.snapshotLength;
+        phonemeIndex += 1
+      ) {
+        const phonemeNode = phonemeNodesResult.snapshotItem(phonemeIndex)
+
+        phonemesList.push(phonemeNode)
+      }
+
+      const phonemesData = []
+      let accumulatedPhonemeStart = previousPhraseData?.duration ?? 0
+
+      phonemesList.forEach((phonemeNode, phonemeIndex) => {
+        if (phonemeNode.nodeName === 'ph') {
+          const duration = parseFloat(phonemeNode.getAttribute('d'))
+          const phonemeName = phonemeNode.getAttribute('p')
+          const frequencyList = phonemeNode.getAttribute('f0')
+
+          if (frequencyList) {
+            const parsedFrequencies = frequencyList
+              .replace(/^\(|\)$/g, '')
+              .split(')(')
+              .map(frequencyPair =>
+                frequencyPair.split(',').map(value => parseFloat(value)),
+              )
+
+            const nextPhoneme = phonemesList[phonemeIndex + 1]
+            const previousPhonemeData = phonemesData[phonemesData.length - 1]
+
+            if (
+              parsedFrequencies[0][0] !== 0 &&
+              (phonemeIndex === 0 || previousPhonemeData?.hasNoFrequencies)
+            ) {
+              phonemesData.push({
+                x: accumulatedPhonemeStart,
+                y: parsedFrequencies[0][1] ?? 0,
+                phonemeName,
+              })
+            }
+
+            const nextPhonemeName =
+              nextPhoneme?.nodeName === 'ph'
+                ? nextPhoneme.getAttribute('p')
+                : ''
+
+            parsedFrequencies.forEach(
+              ([progress, frequency], frequencyIndex) => {
+                const hasFollowingBoundary =
+                  nextPhoneme?.nodeName === 'boundary'
+
+                phonemesData.push({
+                  x: accumulatedPhonemeStart + 0.01 * progress * duration,
+                  y:
+                    phonemeIndex ===
+                      phonemesList.length - (hasFollowingBoundary ? 2 : 1) &&
+                    frequencyIndex === parsedFrequencies.length - 1 &&
+                    phraseNodeIndex === phraseNodes.length - 1
+                      ? 0
+                      : frequency,
+                  phonemeName: progress === 100 ? nextPhonemeName : phonemeName,
+                  repeated: progress !== 0 && progress !== 100,
+                })
+              },
+            )
+          } else {
+            phonemesData.push({
+              x: accumulatedPhonemeStart,
+              y: phonemesData[phonemesData.length - 1]?.y ?? 0,
+              phonemeName,
+              hasNoFrequencies: true,
+            })
+          }
+
+          accumulatedPhonemeStart += duration
+        }
+
+        if (phonemeNode.nodeName === 'boundary') {
+          const duration = parseFloat(phonemeNode.getAttribute('duration'))
+
+          if (
+            phonemeIndex !== phonemesList.length - 1 ||
+            phraseNodeIndex !== phraseNodes.length - 1
+          ) {
+            phonemesData.push({
+              x: accumulatedPhonemeStart,
+              y: 0,
+              pause: true,
+            })
+
+            phonemesData.push({
+              x: accumulatedPhonemeStart + duration - 0.01,
+              y: 0,
+              pause: true,
+            })
+          }
+
+          accumulatedPhonemeStart += duration
+        }
+      })
+
+      return [
+        ...accumulatedDataset,
+        { phonemes: phonemesData, duration: accumulatedPhonemeStart },
+      ]
+    }, [])
+    .flatMap(({ phonemes }) => phonemes)
 }

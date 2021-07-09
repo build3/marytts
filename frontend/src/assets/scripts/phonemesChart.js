@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 
-import useStore from '../../store'
+import { useStore } from '../../store/createStore'
 
 function getChartWidth() {
   const rootStyling = getComputedStyle(
@@ -11,12 +11,12 @@ function getChartWidth() {
 
 function redrawChart({
   dataset,
-  ms,
   color,
   editable,
   initialContainerHeight,
   store,
 }) {
+  const timeValues = dataset.map(({ x }) => x)
   const chartWidth = getChartWidth()
 
   const root = d3.select('#main-chart-container')
@@ -39,13 +39,15 @@ function redrawChart({
 
   const xScale = d3
     .scaleLinear()
-    .domain([0, d3.max(ms.value)])
+    .domain([0, d3.max(timeValues)])
     .range([0, chartWidth - margin.left - margin.right])
 
   const xAxis = d3
     .axisBottom()
-    .tickValues(ms.value)
-    .tickFormat((_, index) => dataset.value[index].phonem)
+    .tickValues(timeValues)
+    .tickFormat((_, index) =>
+      dataset[index]?.repeated ? '' : dataset[index]?.phonemeName,
+    )
     .scale(xScale)
 
   chartSvg
@@ -65,7 +67,7 @@ function redrawChart({
     )
     .call(xAxis)
 
-  const frequencyValues = dataset.value.map(({ y }) => y)
+  const frequencyValues = dataset.map(({ y }) => y)
   const maxYValue = d3.max(frequencyValues)
 
   let divisorYBase = 10
@@ -128,7 +130,7 @@ function redrawChart({
       .attr('y2', gridLineY)
   })
 
-  ms.value.forEach(x => {
+  timeValues.forEach(x => {
     const gridLineX =
       margin.left +
       (x * (chartWidth - margin.left - margin.right)) / xScale.domain()[1]
@@ -152,7 +154,7 @@ function redrawChart({
   const colorGradient1 = `${color}08`
   const colorGradient2 = `${color}32`
 
-  ms.value.forEach((xValue, xIndex) => {
+  timeValues.forEach((xValue, xIndex) => {
     const xChartValue = xValue / xScale.domain()[1]
 
     testAreaGradient
@@ -172,14 +174,14 @@ function redrawChart({
 
   const chartPath = chartSvg
     .append('path')
-    .datum(dataset.value)
+    .datum(dataset)
     .attr('fill', 'none')
     .attr('stroke', color)
     .attr('stroke-width', 2)
 
   const chartPointContainer = chartSvg.append('g')
 
-  dataset.value.forEach(({ x, y }, pointIndex) => {
+  dataset.forEach(({ x, y }, pointIndex) => {
     chartPointContainer
       .append('circle')
       .attr('fill', color)
@@ -253,7 +255,7 @@ function redrawChart({
             yScale.domain()[0],
       )
 
-    testArea.attr('d', area(dataset.value))
+    testArea.attr('d', area(dataset))
   }
 
   calculateChartPath()
@@ -269,7 +271,7 @@ function redrawChart({
       pointValue: chartY,
     })
 
-    chartPath.datum(dataset.value)
+    chartPath.datum(dataset)
     calculateChartPath()
   }
 
@@ -280,8 +282,8 @@ function redrawChart({
 
     const pointIndex = parseInt(this.getAttribute('point-index'), 10)
 
-    const frequency = Math.round(dataset.value[pointIndex]?.y)
-    const msLabel = Math.round(dataset.value[pointIndex]?.x)
+    const frequency = Math.round(dataset[pointIndex]?.y)
+    const msLabel = Math.round(dataset[pointIndex]?.x)
 
     const x =
       margin.left +
@@ -345,7 +347,7 @@ function redrawChart({
 export default function getChartGenerator() {
   const store = useStore()
 
-  return ({ dataset, ms, color, editable }) => {
+  return ({ dataset, color, editable }) => {
     const initialContainerHeight = parseInt(
       getComputedStyle(document.querySelector('#main-chart-container')).height,
       10,
@@ -360,7 +362,6 @@ export default function getChartGenerator() {
 
       redrawChart({
         dataset,
-        ms,
         color,
         editable,
         initialContainerHeight,

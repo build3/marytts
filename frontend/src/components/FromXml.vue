@@ -69,7 +69,7 @@
 
 <script>
 import { computed, inject, ref } from 'vue'
-import useStore from '../store'
+import { useStore } from '../store/createStore'
 
 import getChartGenerator from '../assets/scripts/phonemesChart'
 
