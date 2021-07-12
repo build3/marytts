@@ -782,6 +782,8 @@ const store = createStore({
     chartColor: '#00d1b2',
     error: {
       fetchVoices: null,
+      getAudioStream: null,
+      getAudioPhonemes: null,
     },
   }),
 
@@ -801,6 +803,8 @@ const store = createStore({
     },
 
     async getAudioStream() {
+      this.error.getAudioStream = null
+
       this.stream = null
 
       try {
@@ -831,11 +835,15 @@ const store = createStore({
 
         this.stream = await transformProcessBlobToStream(processBlob)
       } catch {
+        this.error.getAudioPhonemes = null
+
         this.stream = null
       }
     },
 
     async getAudioPhonemes() {
+      this.error.getAudioPhonemes = null
+
       this.beginDocumentTags = ''
       this.endDocumentTags = ''
       this.acoustParamsDocument = null
@@ -872,11 +880,21 @@ const store = createStore({
           transformAcoustParamsXmlToPhrases(processAcoustParamsXml),
         )
       } catch (err) {
+        this.error.getAudioPhonemes = err.message
+
         this.beginDocumentTags = ''
         this.endDocumentTags = ''
         this.acoustParamsDocument = null
         this.phraseNodes = []
       }
+    },
+
+    clearErrors() {
+      const clearObjectKey = errorKey => {
+        this.error[errorKey] = null
+      }
+
+      Object.keys(this.error).forEach(clearObjectKey.bind(this))
     },
 
     updateDatasetPoint({ pointIndex, pointValue: chartY }) {

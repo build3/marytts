@@ -6,8 +6,10 @@
   </nav>
   <section class="is-flex is-flex-direction-column is-align-items-stretch px-5">
     <div class="notification is-danger" v-if="hasAnyError">
-      <button class="delete"></button>
-      {{ firstError }}
+      <button class="delete" @click="clearErrors"></button>
+      <div v-for="errorMessage in errorMessages" :key="errorMessage">
+        {{ errorMessage }}
+      </div>
     </div>
     <mary-tabs />
 
@@ -29,59 +31,48 @@
   <component :is="currentActiveTabFooter" :is-stream-empty="isStreamEmpty" />
 </template>
 
-<script>
+<script setup>
 import { computed, onMounted, provide, ref } from 'vue'
 import { textTab } from './store'
 import { useStore } from './store/createStore'
 
-export default {
-  setup() {
-    const store = useStore()
+const store = useStore()
 
-    const simplifiedVersionLoaded = ref(false)
-    const setSimplifiedVersionLoaded = newSimplifiedVersionLoaded => {
-      simplifiedVersionLoaded.value = newSimplifiedVersionLoaded
-    }
-
-    provide('simplifiedVersionLoaded', simplifiedVersionLoaded)
-    provide('setSimplifiedVersionLoaded', setSimplifiedVersionLoaded)
-
-    const currentActiveTab = ref(textTab)
-    const setCurrentActiveTab = newTab => {
-      currentActiveTab.value = newTab
-    }
-
-    provide('currentActiveTab', currentActiveTab)
-    provide('setCurrentActiveTab', setCurrentActiveTab)
-
-    const stream = computed(() => store.stream)
-    const isStreamEmpty = computed(() => !stream.value)
-
-    const currentActiveTabComponent = computed(() =>
-      currentActiveTab.value === textTab ? 'from-text' : 'from-xml',
-    )
-    const currentActiveTabFooter = computed(() =>
-      currentActiveTab.value === textTab
-        ? 'from-text-footer'
-        : 'from-xml-footer',
-    )
-
-    const errors = computed(() => store.error)
-    const firstError = computed(() => Object.values(errors.value)[0])
-    const hasAnyError = computed(() => Boolean(firstError.value))
-
-    onMounted(() => {
-      store.fetchVoices()
-    })
-
-    return {
-      stream,
-      isStreamEmpty,
-      currentActiveTabComponent,
-      currentActiveTabFooter,
-      firstError,
-      hasAnyError,
-    }
-  },
+const simplifiedVersionLoaded = ref(false)
+const setSimplifiedVersionLoaded = newSimplifiedVersionLoaded => {
+  simplifiedVersionLoaded.value = newSimplifiedVersionLoaded
 }
+
+provide('simplifiedVersionLoaded', simplifiedVersionLoaded)
+provide('setSimplifiedVersionLoaded', setSimplifiedVersionLoaded)
+
+const currentActiveTab = ref(textTab)
+const setCurrentActiveTab = newTab => {
+  currentActiveTab.value = newTab
+}
+
+provide('currentActiveTab', currentActiveTab)
+provide('setCurrentActiveTab', setCurrentActiveTab)
+
+const stream = computed(() => store.stream)
+const isStreamEmpty = computed(() => !stream.value)
+
+const currentActiveTabComponent = computed(() =>
+  currentActiveTab.value === textTab ? 'from-text' : 'from-xml',
+)
+const currentActiveTabFooter = computed(() =>
+  currentActiveTab.value === textTab ? 'from-text-footer' : 'from-xml-footer',
+)
+
+const errors = computed(() => store.error)
+const errorMessages = computed(() => Object.values(errors.value))
+const hasAnyError = computed(() => errors.value.length > 0)
+
+const clearErrors = () => {
+  store.clearErrors()
+}
+
+onMounted(() => {
+  store.fetchVoices()
+})
 </script>

@@ -114,7 +114,7 @@ export function transformPhraseNodesToDataset(phraseNodes) {
       const phonemesData = []
       let accumulatedPhonemeStart = previousPhraseData?.duration ?? 0
 
-      phonemesList.forEach((phonemeNode, phonemeIndex) => {
+      phonemesList.forEach(phonemeNode => {
         if (phonemeNode.nodeName === 'ph') {
           const duration = parseFloat(phonemeNode.getAttribute('d'))
           const phonemeName = phonemeNode.getAttribute('p')
@@ -128,41 +128,27 @@ export function transformPhraseNodesToDataset(phraseNodes) {
                 frequencyPair.split(',').map(value => parseFloat(value)),
               )
 
-            const nextPhoneme = phonemesList[phonemeIndex + 1]
-            const previousPhonemeData = phonemesData[phonemesData.length - 1]
-
-            if (
-              parsedFrequencies[0][0] !== 0 &&
-              (phonemeIndex === 0 || previousPhonemeData?.hasNoFrequencies)
-            ) {
-              phonemesData.push({
-                x: accumulatedPhonemeStart,
-                y: parsedFrequencies[0][1] ?? 0,
-                phonemeName,
-              })
-            }
-
-            const nextPhonemeName =
-              nextPhoneme?.nodeName === 'ph'
-                ? nextPhoneme.getAttribute('p')
-                : ''
+            phonemesData.push({
+              x: accumulatedPhonemeStart,
+              y: parsedFrequencies[0][1] ?? 0,
+              phonemeName,
+              node: phonemeNode,
+              nodeFrequencyIndex: null,
+              type: 'phoneme',
+              phraseIndex: phraseNodeIndex,
+            })
 
             parsedFrequencies.forEach(
               ([progress, frequency], frequencyIndex) => {
-                const hasFollowingBoundary =
-                  nextPhoneme?.nodeName === 'boundary'
-
                 phonemesData.push({
                   x: accumulatedPhonemeStart + 0.01 * progress * duration,
-                  y:
-                    phonemeIndex ===
-                      phonemesList.length - (hasFollowingBoundary ? 2 : 1) &&
-                    frequencyIndex === parsedFrequencies.length - 1 &&
-                    phraseNodeIndex === phraseNodes.length - 1
-                      ? 0
-                      : frequency,
-                  phonemeName: progress === 100 ? nextPhonemeName : phonemeName,
-                  repeated: progress !== 0 && progress !== 100,
+                  y: frequency,
+                  node: phonemeNode,
+                  nodeFrequencyIndex: frequencyIndex,
+                  phonemeName,
+                  repeated: progress !== 0,
+                  type: 'phoneme',
+                  phraseIndex: phraseNodeIndex,
                 })
               },
             )
@@ -170,8 +156,11 @@ export function transformPhraseNodesToDataset(phraseNodes) {
             phonemesData.push({
               x: accumulatedPhonemeStart,
               y: phonemesData[phonemesData.length - 1]?.y ?? 0,
+              node: phonemeNode,
               phonemeName,
               hasNoFrequencies: true,
+              type: 'phoneme',
+              phraseIndex: phraseNodeIndex,
             })
           }
 
@@ -181,31 +170,22 @@ export function transformPhraseNodesToDataset(phraseNodes) {
         if (phonemeNode.nodeName === 'boundary') {
           const duration = parseFloat(phonemeNode.getAttribute('duration'))
 
-          if (
-            phonemeIndex !== phonemesList.length - 1 ||
-            phraseNodeIndex !== phraseNodes.length - 1
-          ) {
-            phonemesData.push({
-              x: accumulatedPhonemeStart,
-              y: 0,
-              pause: true,
-            })
+          phonemesData.push({
+            x: accumulatedPhonemeStart,
+            duration,
+            node: phonemeNode,
+            type: 'pause',
+            phraseIndex: phraseNodeIndex,
+          })
 
-            phonemesData.push({
-              x: accumulatedPhonemeStart + duration - 0.01,
-              y: 0,
-              pause: true,
-            })
-          }
-
-          accumulatedPhonemeStart += duration
+          accumulatedPhonemeStart += 100
         }
       })
 
       return [
         ...accumulatedDataset,
-        { phonemes: phonemesData, duration: accumulatedPhonemeStart },
+        { phonemesData, duration: accumulatedPhonemeStart },
       ]
     }, [])
-    .flatMap(({ phonemes }) => phonemes)
+    .flatMap(({ phonemesData }) => phonemesData)
 }
