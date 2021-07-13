@@ -117,7 +117,7 @@ export function transformPhraseNodesToDataset(phraseNodes) {
       const phonemesData = []
       let accumulatedPhonemeStart = previousPhraseData?.duration ?? 0
 
-      phonemesList.forEach(phonemeNode => {
+      phonemesList.forEach((phonemeNode, phonemeIndex) => {
         const lastPhonemeData = phonemesData[phonemesData.length - 1]
         const lastPhonemeNotDrawn =
           lastPhonemeData?.voiced && lastPhonemeData?.notDrawn
@@ -126,6 +126,8 @@ export function transformPhraseNodesToDataset(phraseNodes) {
           const duration = parseFloat(phonemeNode.getAttribute('d'))
           const phonemeName = phonemeNode.getAttribute('p')
           const frequencyList = phonemeNode.getAttribute('f0')
+
+          const nextPhonemeNode = phonemesList[phonemeIndex + 1]
 
           if (frequencyList) {
             const parsedFrequencies = frequencyList
@@ -160,7 +162,9 @@ export function transformPhraseNodesToDataset(phraseNodes) {
                   repeated: progress !== 0,
                   type: 'phoneme',
                   phraseIndex: phraseNodeIndex,
-                  notDrawn: progress === 100,
+                  notDrawn:
+                    progress === 100 &&
+                    nextPhonemeNode?.nodeName !== 'boundary',
                   voiced: true,
                   editable: true,
                 })
@@ -191,15 +195,17 @@ export function transformPhraseNodesToDataset(phraseNodes) {
         if (phonemeNode.nodeName === 'boundary') {
           const duration = parseFloat(phonemeNode.getAttribute('duration'))
 
-          phonemesData.push({
-            x: accumulatedPhonemeStart,
-            duration,
-            node: phonemeNode,
-            type: 'pause',
-            phraseIndex: phraseNodeIndex,
-          })
+          if (phraseNodeIndex < phraseNodes.length - 1) {
+            phonemesData.push({
+              x: accumulatedPhonemeStart,
+              duration,
+              node: phonemeNode,
+              type: 'pause',
+              phraseIndex: phraseNodeIndex,
+            })
 
-          accumulatedPhonemeStart += 100
+            accumulatedPhonemeStart += 100
+          }
         }
       })
 

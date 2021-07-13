@@ -13,6 +13,10 @@ function isPhoneme({ type, notDrawn }) {
   return type === 'phoneme' && !notDrawn
 }
 
+function isPause({ type }) {
+  return type === 'pause'
+}
+
 const margin = {
   left: 50,
   top: 10,
@@ -321,6 +325,46 @@ function redrawChart({
       .attr('y1', gridLineY)
       .attr('x2', chartWidth - margin.right)
       .attr('y2', gridLineY)
+  })
+
+  // PAUSE DATA
+
+  const pauseContainer = chartSvg.append('g')
+
+  pauseContainer
+    .append('defs')
+    .append('pattern')
+    .attr('id', 'pause-pattern')
+    .attr('width', 10)
+    .attr('height', 10)
+    .attr('patternUnits', 'userSpaceOnUse')
+    .attr('patternTransform', 'rotate(45)')
+    .append('line')
+    .attr('stroke', 'rgba(0, 0, 0, 0.5)')
+    .attr('stroke-width', 4)
+    .attr('stroke-linecap', 'square')
+    .attr('x1', 5)
+    .attr('y1', 0)
+    .attr('x2', 5)
+    .attr('y2', 10)
+
+  const pausePoints = dataset.filter(isPause)
+
+  pausePoints.forEach(({ x }) => {
+    pauseContainer
+      .append('rect')
+      .attr('fill', 'url(#pause-pattern)')
+      .attr(
+        'x',
+        margin.left +
+          (x * (chartWidth - margin.left - margin.right)) / xScale.domain()[1],
+      )
+      .attr('y', margin.top)
+      .attr(
+        'width',
+        (100 * (chartWidth - margin.left - margin.right)) / xScale.domain()[1],
+      )
+      .attr('height', initialContainerHeight - margin.top - margin.bottom)
   })
 
   // PHRASE DATA
