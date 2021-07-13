@@ -38,14 +38,6 @@ import { useStore } from './store/createStore'
 
 const store = useStore()
 
-const simplifiedVersionLoaded = ref(false)
-const setSimplifiedVersionLoaded = newSimplifiedVersionLoaded => {
-  simplifiedVersionLoaded.value = newSimplifiedVersionLoaded
-}
-
-provide('simplifiedVersionLoaded', simplifiedVersionLoaded)
-provide('setSimplifiedVersionLoaded', setSimplifiedVersionLoaded)
-
 const currentActiveTab = ref(textTab)
 const setCurrentActiveTab = newTab => {
   currentActiveTab.value = newTab

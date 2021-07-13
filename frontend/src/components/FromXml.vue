@@ -19,11 +19,7 @@
   <voice-select />
 
   <div class="button-row">
-    <audio-button
-      is-xml
-      @click="resetSimplifiedVersionLoaded"
-      :disabled="generateButtonDisabled"
-    />
+    <audio-button is-xml :disabled="generateButtonDisabled" />
 
     <button
       class="button has-text-weight-bold is-primary is-fullwidth"
@@ -68,7 +64,7 @@
 </template>
 
 <script>
-import { computed, inject, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useStore } from '../store/createStore'
 
 import getChartGenerator from '../assets/scripts/phonemesChart'
@@ -82,8 +78,9 @@ export default {
     const generateChart = getChartGenerator()
 
     const simplifyModalShown = ref(false)
-    const simplifiedVersionLoaded = inject('simplifiedVersionLoaded')
-    const setSimplifiedVersionLoaded = inject('setSimplifiedVersionLoaded')
+    const simplifiedVersionLoaded = computed(
+      () => store.simplifiedVersionLoaded,
+    )
     const xmlFile = computed(() => store.xmlFile)
     const simplifyDisabled = computed(() => !store.stream)
 
@@ -117,10 +114,6 @@ export default {
 
     function closeSimplifyModal() {
       simplifyModalShown.value = false
-    }
-
-    function resetSimplifiedVersionLoaded() {
-      setSimplifiedVersionLoaded(false)
     }
 
     function generateAudioFromEditedPoints() {
@@ -158,7 +151,6 @@ export default {
         editable: true,
       })
 
-      setSimplifiedVersionLoaded(true)
       closeSimplifyModal()
     }
 
@@ -169,7 +161,6 @@ export default {
       fileName,
       rightButtonLabel,
       simplifiedVersionLoaded,
-      resetSimplifiedVersionLoaded,
       simplifyDisabled,
       onRightButtonClick,
       openSimplifyModal,

@@ -27,6 +27,7 @@ const store = createStore({
     phraseNodes: [],
     chartColor: '#00d1b2',
     xmlDownloadUrl: null,
+    simplifiedVersionLoaded: false,
     error: {
       fetchVoices: null,
       getAudioStream: null,
@@ -49,10 +50,12 @@ const store = createStore({
       }
     },
 
-    async getAudioStream({ inputType, simplified, autoplay = true }) {
+    async getAudioStream({ inputType, simplified = false, autoplay = true }) {
       this.error.getAudioStream = null
 
       this.stream = null
+
+      this.simplifiedVersionLoaded = simplified
 
       const audioElement = document.querySelector('audio')
 
@@ -106,11 +109,13 @@ const store = createStore({
       }
     },
 
-    async getAudioPhonemes({ inputType, simplified }) {
+    async getAudioPhonemes({ inputType, simplified = false }) {
       this.error.getAudioPhonemes = null
 
       this.phraseNodes = []
       this.dataset = null
+
+      this.simplifiedVersionLoaded = simplified
 
       if (!simplified) {
         this.acoustParamsDocument = null
@@ -209,7 +214,9 @@ const store = createStore({
       }
 
       const exportXmlContent = getExportXmlContent({
-        acoustParamsDocument: this.acoustParamsDocument,
+        acoustParamsDocument: this.simplifiedVersionLoaded
+          ? this.acoustParamsSimplifiedDocument
+          : this.acoustParamsDocument,
         beginDocumentTags: this.beginDocumentTags,
         endDocumentTags: this.endDocumentTags,
       })

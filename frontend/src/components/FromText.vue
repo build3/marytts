@@ -13,10 +13,7 @@
   <voice-select />
 
   <div class="button-row">
-    <audio-button
-      @click="resetSimplifiedVersionLoaded"
-      :disabled="generateButtonDisabled"
-    />
+    <audio-button :disabled="generateButtonDisabled" />
 
     <button
       class="button has-text-weight-bold is-primary is-fullwidth"
@@ -61,7 +58,7 @@
 </template>
 
 <script>
-import { computed, inject, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useStore } from '../store/createStore'
 
 import getChartGenerator from '../assets/scripts/phonemesChart'
@@ -75,8 +72,9 @@ export default {
     const generateChart = getChartGenerator()
 
     const simplifyModalShown = ref(false)
-    const simplifiedVersionLoaded = inject('simplifiedVersionLoaded')
-    const setSimplifiedVersionLoaded = inject('setSimplifiedVersionLoaded')
+    const simplifiedVersionLoaded = computed(
+      () => store.simplifiedVersionLoaded,
+    )
 
     const selectedVoiceType = computed(() => store.selectedVoiceType)
 
@@ -120,7 +118,6 @@ export default {
         editable: true,
       })
 
-      setSimplifiedVersionLoaded(true)
       closeSimplifyModal()
     }
 
@@ -129,10 +126,6 @@ export default {
         inputType: 'ACOUSTPARAMS',
         simplified: true,
       })
-    }
-
-    function resetSimplifiedVersionLoaded() {
-      setSimplifiedVersionLoaded(false)
     }
 
     function onRightButtonClick() {
@@ -151,7 +144,6 @@ export default {
       openSimplifyModal,
       closeSimplifyModal,
       simplifiedVersionLoaded,
-      resetSimplifiedVersionLoaded,
       onRightButtonClick,
       rightButtonLabel,
       store,
