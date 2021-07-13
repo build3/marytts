@@ -447,11 +447,15 @@ function redrawChart({
 
       node.setAttribute('f0', `(${currentFrequencyList.join(')(')})`)
 
-      store.getAudioStream({
-        inputType: 'ACOUSTPARAMS',
-        simplified: true,
-        autoplay: false,
-      })
+      store
+        .getAudioStream({
+          inputType: 'ACOUSTPARAMS',
+          simplified: true,
+          autoplay: false,
+        })
+        .then(() => {
+          store.regenerateXmlDownloadUrl()
+        })
     }
   }
 

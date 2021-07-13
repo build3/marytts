@@ -78,7 +78,7 @@ export default {
     const store = useStore()
 
     const chartColor = computed(() => store.chartColor)
-    const dataset = computed(() => store.chartDataset)
+    const dataset = computed(() => store.dataset)
     const generateChart = getChartGenerator()
 
     const simplifyModalShown = ref(false)
@@ -124,7 +124,10 @@ export default {
     }
 
     function generateAudioFromEditedPoints() {
-      // store.dispatch('generateAudioFromEditedPointsXml')
+      store.getAudioStream({
+        inputType: 'ACOUSTPARAMS',
+        simplified: true,
+      })
     }
 
     function onRightButtonClick() {
@@ -136,9 +139,17 @@ export default {
     }
 
     async function generateAudio() {
+      store.simplifyAcoustParamsDocument()
+
       await Promise.all([
-        // store.dispatch('simplifiedAudioStreamFromXml'),
-        // store.dispatch('simplifiedGraphPhonemesFromXml'),
+        store.getAudioStream({
+          inputType: 'ACOUSTPARAMS',
+          simplified: true,
+        }),
+        store.getAudioPhonemes({
+          inputType: 'ACOUSTPARAMS',
+          simplified: true,
+        }),
       ])
 
       generateChart({

@@ -124,13 +124,11 @@ export default {
       closeSimplifyModal()
     }
 
-    async function generateAudioFromEditedPoints() {
-      await Promise.all([
-        store.getAudioStream({
-          inputType: 'ACOUSTPARAMS',
-          simplified: true,
-        }),
-      ])
+    function generateAudioFromEditedPoints() {
+      store.getAudioStream({
+        inputType: 'ACOUSTPARAMS',
+        simplified: true,
+      })
     }
 
     function resetSimplifiedVersionLoaded() {

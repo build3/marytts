@@ -31,7 +31,6 @@ defineProps({
 
 const store = useStore()
 
-// const simplifiedVersionLoaded = inject('simplifiedVersionLoaded')
 const selectedVoiceType = computed(() => store.selectedVoiceType)
 const userText = computed(() => store.userText)
 const generateButtonDisabled = computed(
