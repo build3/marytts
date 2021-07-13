@@ -10,52 +10,37 @@
       Play audio
     </button>
 
-    <button
-      class="button has-text-weight-bold is-primary is-fullwidth"
-      :disabled="generateButtonDisabled"
-      @click="generateXml"
-    >
-      Export XML
-    </button>
+    <a :href="xmlDownloadUrl" download="MaryTTS.xml">
+      <button
+        class="button has-text-weight-bold is-primary is-fullwidth"
+        :disabled="generateButtonDisabled"
+      >
+        Export XML
+      </button>
+    </a>
   </footer>
 </template>
 
-<script>
-import { computed, inject } from 'vue'
+<script setup>
+import { computed, defineProps } from 'vue'
 import { useStore } from '../store/createStore'
 
-export default {
-  props: {
-    isStreamEmpty: Boolean,
-  },
+defineProps({
+  isStreamEmpty: Boolean,
+})
 
-  setup() {
-    const store = useStore()
+const store = useStore()
 
-    const simplifiedVersionLoaded = inject('simplifiedVersionLoaded')
-    const selectedVoiceType = computed(() => store.selectedVoiceType)
-    const userText = computed(() => store.userText)
-    const generateButtonDisabled = computed(
-      () => !selectedVoiceType.value || !userText.value,
-    )
+// const simplifiedVersionLoaded = inject('simplifiedVersionLoaded')
+const selectedVoiceType = computed(() => store.selectedVoiceType)
+const userText = computed(() => store.userText)
+const generateButtonDisabled = computed(
+  () => !selectedVoiceType.value || !userText.value,
+)
 
-    const playStream = () => {
-      // store.dispatch('playStream')
-    }
+const xmlDownloadUrl = computed(() => store.xmlDownloadUrl)
 
-    const generateXml = () => {
-      if (simplifiedVersionLoaded.value) {
-        // store.dispatch('generateSimplifiedXmlFileFromText')
-      } else {
-        // store.dispatch('generateXmlFileFromText')
-      }
-    }
-
-    return {
-      generateButtonDisabled,
-      playStream,
-      generateXml,
-    }
-  },
+const playStream = () => {
+  // store.dispatch('playStream')
 }
 </script>

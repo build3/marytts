@@ -101,7 +101,18 @@ export default {
     }
 
     async function generateAudio() {
-      await Promise.all([store.getAudioStream(), store.getAudioPhonemes()])
+      store.simplifyAcoustParamsDocument()
+
+      await Promise.all([
+        store.getAudioStream({
+          inputType: 'ACOUSTPARAMS',
+          simplified: true,
+        }),
+        store.getAudioPhonemes({
+          inputType: 'ACOUSTPARAMS',
+          simplified: true,
+        }),
+      ])
 
       generateChart({
         color: chartColor.value,
@@ -113,8 +124,13 @@ export default {
       closeSimplifyModal()
     }
 
-    function generateAudioFromEditedPoints() {
-      // TODO
+    async function generateAudioFromEditedPoints() {
+      await Promise.all([
+        store.getAudioStream({
+          inputType: 'ACOUSTPARAMS',
+          simplified: true,
+        }),
+      ])
     }
 
     function resetSimplifiedVersionLoaded() {

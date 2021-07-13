@@ -33,11 +33,12 @@ export default {
     const generateChart = getChartGenerator()
 
     async function generateAudio() {
-      if (props.isXml) {
-        // TODO
-      } else {
-        await Promise.all([store.getAudioStream(), store.getAudioPhonemes()])
-      }
+      const inputType = props.isXml ? 'ACOUSTPARAMS' : 'TEXT'
+
+      await Promise.all([
+        store.getAudioStream({ inputType }),
+        store.getAudioPhonemes({ inputType }),
+      ])
 
       generateChart({
         color: chartColor.value,

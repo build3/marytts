@@ -9,8 +9,8 @@ function getChartWidth() {
   return parseInt(rootStyling.width, 10)
 }
 
-function isPhoneme({ type }) {
-  return type === 'phoneme'
+function isPhoneme({ type, notDrawn }) {
+  return type === 'phoneme' && !notDrawn
 }
 
 const margin = {
@@ -43,6 +43,7 @@ function getPhraseData({
   const chartPathArea = chartSvg
     .append('path')
     .attr('fill', `url(#test-area-gradient-${phraseIndex})`)
+    .style('user-select', 'none')
 
   const chartPath = chartSvg
     .append('path')
@@ -50,28 +51,34 @@ function getPhraseData({
     .attr('fill', 'none')
     .attr('stroke', color)
     .attr('stroke-width', 2)
+    .style('user-select', 'none')
 
-  phonemes.forEach(({ x, y }, pointIndex) => {
-    chartPointContainer
-      .append('circle')
-      .attr('fill', color)
-      .attr('stroke', 'none')
-      .attr('r', editable ? 6 : 4)
-      .attr('point-index', pointIndex)
-      .attr('phrase-index', phraseIndex)
-      .attr(
-        'cx',
-        margin.left +
-          (x * (chartWidth - margin.left - margin.right)) / xScale.domain()[1],
-      )
-      .attr(
-        'cy',
-        initialContainerHeight -
-          margin.bottom -
-          (y * (initialContainerHeight - margin.top - margin.bottom)) /
-            yScale.domain()[0],
-      )
-  })
+  phonemes.forEach(
+    ({ x, y, datasetIndex, editable: pointEditable }, pointIndex) => {
+      chartPointContainer
+        .append('circle')
+        .attr('fill', color)
+        .attr('stroke', 'none')
+        .attr('r', editable && pointEditable ? 6 : 4)
+        .attr('point-index', pointIndex)
+        .attr('phrase-index', phraseIndex)
+        .attr('dataset-index', datasetIndex)
+        .attr('point-editable', pointEditable)
+        .attr(
+          'cx',
+          margin.left +
+            (x * (chartWidth - margin.left - margin.right)) /
+              xScale.domain()[1],
+        )
+        .attr(
+          'cy',
+          initialContainerHeight -
+            margin.bottom -
+            (y * (initialContainerHeight - margin.top - margin.bottom)) /
+              yScale.domain()[0],
+        )
+    },
+  )
 
   const chartPathAreaGradient = chartSvg
     .append('defs')
@@ -138,16 +145,18 @@ function getPhraseData({
 
   calculateChartPath()
 
-  function recalculateChartPath(pointIndex, pointY) {
+  function recalculateChartPath(pointIndex, pointY, datasetIndex) {
     const chartY = Math.round(
       ((initialContainerHeight - margin.bottom - pointY) * yScale.domain()[0]) /
         (initialContainerHeight - margin.top - margin.bottom),
     )
 
     store.updateDatasetPoint({
-      pointIndex,
+      pointIndex: datasetIndex,
       pointValue: chartY,
     })
+
+    phonemes[pointIndex].y = chartY
 
     chartPath.datum(phonemes)
     calculateChartPath()
@@ -175,6 +184,14 @@ function redrawChart({
   initialContainerHeight,
   store,
 }) {
+  const root = d3.select('#main-chart-container')
+
+  root.html('')
+
+  if (!dataset) {
+    return
+  }
+
   const datasetPhonemes = dataset.filter(isPhoneme)
   const allTimeValues = datasetPhonemes.map(({ x }) => x)
   const allFrequencyValues = datasetPhonemes.map(({ y }) => y)
@@ -184,10 +201,6 @@ function redrawChart({
   const maxYValue = d3.max(allFrequencyValues)
 
   const chartWidth = getChartWidth()
-
-  const root = d3.select('#main-chart-container')
-
-  root.html('')
 
   const chartSvg = root
     .append('svg')
@@ -312,13 +325,18 @@ function redrawChart({
 
   // PHRASE DATA
 
+  const phraseContainer = chartSvg.append('g')
+
   const chartPointContainer = chartSvg.append('g')
 
   const datasetsGroupedByPhrase = dataset.reduce(
-    (accumulatedPointData, pointData) => {
+    (accumulatedPointData, pointData, datasetIndex) => {
       accumulatedPointData[pointData.phraseIndex] = [
         ...(accumulatedPointData[pointData.phraseIndex] ?? []),
-        pointData,
+        {
+          ...pointData,
+          datasetIndex,
+        },
       ]
       return accumulatedPointData
     },
@@ -327,7 +345,7 @@ function redrawChart({
 
   const phraseChartData = datasetsGroupedByPhrase.map((phonemes, phraseIndex) =>
     getPhraseData({
-      chartSvg,
+      chartSvg: phraseContainer,
       chartPointContainer,
       phonemes: phonemes.filter(isPhoneme),
       color,
@@ -397,6 +415,7 @@ function redrawChart({
   function onDragEvent(event) {
     const phraseIndex = parseInt(this.getAttribute('phrase-index'), 10)
     const pointIndex = parseInt(this.getAttribute('point-index'), 10)
+    const datasetIndex = parseInt(this.getAttribute('dataset-index'), 10)
 
     const { recalculateChartPath } = phraseChartData[phraseIndex]
 
@@ -407,8 +426,33 @@ function redrawChart({
       ),
     )
     this.setAttribute('cy', pointY)
-    recalculateChartPath(pointIndex, pointY)
+    recalculateChartPath(pointIndex, pointY, datasetIndex)
     handleTooltipText.bind(this)()
+  }
+
+  function onDragEndEvent() {
+    const datasetIndex = parseInt(this.getAttribute('dataset-index'), 10)
+
+    const { node, nodeFrequencyIndex, y } = dataset[datasetIndex]
+
+    if (nodeFrequencyIndex != null) {
+      const currentFrequencyList = node
+        .getAttribute('f0')
+        .replace(/^\(|\)$/g, '')
+        .split(')(')
+
+      currentFrequencyList[nodeFrequencyIndex] = currentFrequencyList[
+        nodeFrequencyIndex
+      ].replace(/^(\d+),\d+$/, `$1,${y}`)
+
+      node.setAttribute('f0', `(${currentFrequencyList.join(')(')})`)
+
+      store.getAudioStream({
+        inputType: 'ACOUSTPARAMS',
+        simplified: true,
+        autoplay: false,
+      })
+    }
   }
 
   chartPointContainer
@@ -418,7 +462,7 @@ function redrawChart({
 
   if (editable) {
     chartPointContainer
-      .selectAll('circle')
+      .selectAll('circle[point-editable="true"]')
       .style('cursor', 'pointer')
       .call(
         d3
@@ -428,6 +472,7 @@ function redrawChart({
           .on('end', function onDragEnd(event) {
             onDragEvent.bind(this)(event)
             handleTooltipHiding.bind(this)(event)
+            onDragEndEvent.bind(this)(event)
           }),
       )
   }
