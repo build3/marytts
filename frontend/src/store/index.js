@@ -16,6 +16,7 @@ const store = createStore({
   state: () => ({
     userText: '',
     dataset: null,
+    originalDataset: null,
     stream: null,
     xmlFile: null,
     voiceTypes: [],
@@ -113,11 +114,14 @@ const store = createStore({
       this.error.getAudioPhonemes = null
 
       this.phraseNodes = []
-      this.dataset = null
 
       this.simplifiedVersionLoaded = simplified
 
-      if (!simplified) {
+      if (simplified) {
+        this.originalDataset = this.dataset
+      } else {
+        this.dataset = null
+        this.originalDataset = null
         this.acoustParamsDocument = null
         this.beginDocumentTags = ''
         this.endDocumentTags = ''

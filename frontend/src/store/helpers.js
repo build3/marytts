@@ -122,12 +122,12 @@ export function transformPhraseNodesToDataset(phraseNodes) {
         const lastPhonemeNotDrawn =
           lastPhonemeData?.voiced && lastPhonemeData?.notDrawn
 
+        const nextPhonemeNode = phonemesList[phonemeIndex + 1]
+
         if (phonemeNode.nodeName === 'ph') {
           const duration = parseFloat(phonemeNode.getAttribute('d'))
           const phonemeName = phonemeNode.getAttribute('p')
           const frequencyList = phonemeNode.getAttribute('f0')
-
-          const nextPhonemeNode = phonemesList[phonemeIndex + 1]
 
           if (frequencyList) {
             const parsedFrequencies = frequencyList
@@ -170,6 +170,8 @@ export function transformPhraseNodesToDataset(phraseNodes) {
                 })
               },
             )
+
+            accumulatedPhonemeStart += duration
           } else {
             phonemesData.push({
               x: accumulatedPhonemeStart,
@@ -187,9 +189,11 @@ export function transformPhraseNodesToDataset(phraseNodes) {
               voiced: false,
               editable: lastPhonemeNotDrawn,
             })
-          }
 
-          accumulatedPhonemeStart += duration
+            if (nextPhonemeNode?.nodeName !== 'boundary') {
+              accumulatedPhonemeStart += duration
+            }
+          }
         }
 
         if (phonemeNode.nodeName === 'boundary') {

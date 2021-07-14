@@ -17,14 +17,69 @@ function isPause({ type }) {
   return type === 'pause'
 }
 
+function debounce(fn, duration) {
+  let durationTimeout
+
+  return () => {
+    if (durationTimeout) {
+      clearTimeout(durationTimeout)
+    }
+
+    durationTimeout = setTimeout(() => {
+      fn()
+    }, duration)
+  }
+}
+
 const margin = {
   left: 50,
   top: 10,
   right: 10,
   bottom: 30,
+  input: 4,
 }
 
 const axisLabelFontSize = 12
+
+function getChartCurve({ chartWidth, initialContainerHeight, xScale, yScale }) {
+  return d3
+    .line()
+    .curve(d3.curveMonotoneX)
+    .x(
+      ({ x }) =>
+        margin.left +
+        (x * (chartWidth - margin.left - margin.right)) / xScale.domain()[1],
+    )
+    .y(
+      ({ y }) =>
+        initialContainerHeight -
+        margin.bottom -
+        (y * (initialContainerHeight - margin.top - margin.bottom)) /
+          yScale.domain()[0],
+    )
+}
+
+function drawOriginalPhraseData({
+  chartSvg,
+  phonemes,
+  chartWidth,
+  initialContainerHeight,
+  xScale,
+  yScale,
+}) {
+  chartSvg
+    .append('path')
+    .datum(phonemes)
+    .attr('fill', 'none')
+    .attr('stroke', 'rgba(0, 0, 0, 0.75)')
+    .attr('stroke-width', 2)
+    .attr('stroke-dasharray', '4 1')
+    .style('user-select', 'none')
+    .attr(
+      'd',
+      getChartCurve({ chartWidth, initialContainerHeight, xScale, yScale }),
+    )
+}
 
 function getPhraseData({
   chartSvg,
@@ -109,22 +164,12 @@ function getPhraseData({
   function calculateChartPath() {
     chartPath.attr(
       'd',
-      d3
-        .line()
-        .curve(d3.curveMonotoneX)
-        .x(
-          ({ x }) =>
-            margin.left +
-            (x * (chartWidth - margin.left - margin.right)) /
-              xScale.domain()[1],
-        )
-        .y(
-          ({ y }) =>
-            initialContainerHeight -
-            margin.bottom -
-            (y * (initialContainerHeight - margin.top - margin.bottom)) /
-              yScale.domain()[0],
-        ),
+      getChartCurve({
+        chartWidth,
+        initialContainerHeight,
+        xScale,
+        yScale,
+      }),
     )
 
     const area = d3
@@ -183,6 +228,7 @@ function getPhraseData({
 
 function redrawChart({
   dataset,
+  originalDataset,
   color,
   editable,
   initialContainerHeight,
@@ -299,7 +345,7 @@ function redrawChart({
     chartSvg
       .append('line')
       .attr('fill', 'none')
-      .attr('stroke', '#cccccc')
+      .attr('stroke', 'rgba(200, 200, 200, 0.4)')
       .attr('stroke-width', 1)
       .attr('x1', gridLineX)
       .attr('y1', margin.top)
@@ -319,13 +365,25 @@ function redrawChart({
     chartSvg
       .append('line')
       .attr('fill', 'none')
-      .attr('stroke', '#cccccc')
+      .attr('stroke', 'rgba(200, 200, 200, 0.4)')
       .attr('stroke-width', 1)
       .attr('x1', margin.left)
       .attr('y1', gridLineY)
       .attr('x2', chartWidth - margin.right)
       .attr('y2', gridLineY)
   })
+
+  const debouncedRegenerateAudio = debounce(() => {
+    store
+      .getAudioStream({
+        inputType: 'ACOUSTPARAMS',
+        simplified: true,
+        autoplay: false,
+      })
+      .then(() => {
+        store.regenerateXmlDownloadUrl()
+      })
+  }, 250)
 
   // PAUSE DATA
 
@@ -350,7 +408,7 @@ function redrawChart({
 
   const pausePoints = dataset.filter(isPause)
 
-  pausePoints.forEach(({ x }) => {
+  pausePoints.forEach(({ x, duration, node }) => {
     pauseContainer
       .append('rect')
       .attr('fill', 'url(#pause-pattern)')
@@ -365,6 +423,86 @@ function redrawChart({
         (100 * (chartWidth - margin.left - margin.right)) / xScale.domain()[1],
       )
       .attr('height', initialContainerHeight - margin.top - margin.bottom)
+
+    const pauseInputContainer = pauseContainer
+      .append('foreignObject')
+      .attr(
+        'x',
+        margin.left +
+          margin.input +
+          (x * (chartWidth - margin.left - margin.right)) / xScale.domain()[1],
+      )
+      .attr('y', margin.top + initialContainerHeight / 2 - 32)
+      .attr(
+        'width',
+        (100 * (chartWidth - margin.left - margin.right)) / xScale.domain()[1] -
+          margin.input * 2,
+      )
+      .attr('height', 32)
+      .append('xhtml:div')
+      .style('background-color', 'white')
+      .style('border', '2px solid black')
+      .style('border-radius', '8px')
+      .style('height', '100%')
+      .style('width', '100%')
+      .style('display', 'flex')
+      .style('align-items', 'center')
+      .style('justify-content', 'space-evenly')
+      .style('padding', '0 4px')
+
+    const pauseDurationInput = pauseInputContainer
+      .append('xhtml:input')
+      .attr('value', duration)
+      .style('background-color', 'white')
+      .style('border', '0')
+      .style('width', '100%')
+      .style('font-size', '0.8rem')
+      .style('box-shadow', 'none')
+      .style('outline', 'none')
+      .style('line-height', '1.15')
+      .style('margin', '0')
+      .style('padding', '0')
+      .on('keydown', event => {
+        if (!editable) {
+          return
+        }
+
+        const disallowedKeys = /^[\WA-Za-z]$/
+
+        if (disallowedKeys.test(event.key)) {
+          event.preventDefault()
+        }
+      })
+      .on('input', event => {
+        if (!editable) {
+          return
+        }
+
+        const newPauseDuration = Math.max(
+          parseInt(event.target.value, 10) || 0,
+          0,
+        )
+
+        event.target.value = String(newPauseDuration)
+
+        node.setAttribute('duration', newPauseDuration)
+
+        debouncedRegenerateAudio()
+      })
+
+    if (!editable) {
+      pauseDurationInput
+        .attr('readonly', true)
+        .attr('disabled', true)
+        .style('cursor', 'not-allowed')
+    }
+
+    pauseInputContainer
+      .append('xhtml:div')
+      .text('ms')
+      .style('color', 'rgb(200, 200, 200)')
+      .style('font-size', '0.8rem')
+      .style('line-height', '1.15')
   })
 
   // PHRASE DATA
@@ -372,6 +510,30 @@ function redrawChart({
   const phraseContainer = chartSvg.append('g')
 
   const chartPointContainer = chartSvg.append('g')
+
+  if (originalDataset) {
+    originalDataset
+      .reduce((accumulatedPointData, pointData, datasetIndex) => {
+        accumulatedPointData[pointData.phraseIndex] = [
+          ...(accumulatedPointData[pointData.phraseIndex] ?? []),
+          {
+            ...pointData,
+            datasetIndex,
+          },
+        ]
+        return accumulatedPointData
+      }, [])
+      .forEach(phonemes => {
+        drawOriginalPhraseData({
+          chartSvg: phraseContainer,
+          phonemes: phonemes.filter(isPhoneme),
+          chartWidth,
+          initialContainerHeight,
+          xScale,
+          yScale,
+        })
+      })
+  }
 
   const datasetsGroupedByPhrase = dataset.reduce(
     (accumulatedPointData, pointData, datasetIndex) => {
@@ -456,6 +618,8 @@ function redrawChart({
     }, 3000)
   }
 
+  // CHART POINT DRAGGING EVENT
+
   function onDragEvent(event) {
     const phraseIndex = parseInt(this.getAttribute('phrase-index'), 10)
     const pointIndex = parseInt(this.getAttribute('point-index'), 10)
@@ -491,15 +655,7 @@ function redrawChart({
 
       node.setAttribute('f0', `(${currentFrequencyList.join(')(')})`)
 
-      store
-        .getAudioStream({
-          inputType: 'ACOUSTPARAMS',
-          simplified: true,
-          autoplay: false,
-        })
-        .then(() => {
-          store.regenerateXmlDownloadUrl()
-        })
+      debouncedRegenerateAudio()
     }
   }
 
@@ -529,7 +685,7 @@ function redrawChart({
 export default function getChartGenerator() {
   const store = useStore()
 
-  return ({ dataset, color, editable }) => {
+  return ({ dataset, originalDataset, color, editable }) => {
     const initialContainerHeight = parseInt(
       getComputedStyle(document.querySelector('#main-chart-container')).height,
       10,
@@ -544,6 +700,7 @@ export default function getChartGenerator() {
 
       redrawChart({
         dataset,
+        originalDataset,
         color,
         editable,
         initialContainerHeight,

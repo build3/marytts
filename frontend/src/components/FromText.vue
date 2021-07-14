@@ -69,6 +69,7 @@ export default {
 
     const chartColor = computed(() => store.chartColor)
     const dataset = computed(() => store.dataset)
+    const originalDataset = computed(() => store.originalDataset)
     const generateChart = getChartGenerator()
 
     const simplifyModalShown = ref(false)
@@ -115,6 +116,7 @@ export default {
       generateChart({
         color: chartColor.value,
         dataset: dataset.value,
+        originalDataset: originalDataset.value,
         editable: true,
       })
 
