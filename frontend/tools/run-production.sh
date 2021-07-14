@@ -1,6 +1,6 @@
-!#/bin/bash
+#!/bin/bash
 
 set -e
 
-npm install
-npm run prod
+yarn
+yarn prod

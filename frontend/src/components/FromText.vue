@@ -16,12 +16,21 @@
     <audio-button :disabled="generateButtonDisabled" />
 
     <button
-      class="button has-text-weight-bold is-primary is-fullwidth"
+      class="button has-text-weight-bold is-primary is-fullwidth is-light"
       :disabled="simplifyDisabled"
-      @click="onRightButtonClick"
+      @click="openSimplifyModal"
     >
-      {{ rightButtonLabel }}
+      Simplify &amp; edit
     </button>
+
+    <a :href="xmlDownloadUrl" download="MaryTTS.xml">
+      <button
+        class="button has-text-weight-bold is-primary is-fullwidth is-light"
+        :disabled="generateButtonDisabled"
+      >
+        Export XML
+      </button>
+    </a>
   </div>
 
   <transition name="fade">
@@ -57,99 +66,62 @@
   </transition>
 </template>
 
-<script>
+<script setup>
 import { computed, ref } from 'vue'
 import { useStore } from '../store/createStore'
 
 import getChartGenerator from '../assets/scripts/phonemesChart'
 
-export default {
-  setup() {
-    const store = useStore()
+const store = useStore()
 
-    const chartColor = computed(() => store.chartColor)
-    const dataset = computed(() => store.dataset)
-    const originalDataset = computed(() => store.originalDataset)
-    const generateChart = getChartGenerator()
+const chartColor = computed(() => store.chartColor)
+const dataset = computed(() => store.dataset)
+const originalDataset = computed(() => store.originalDataset)
+const generateChart = getChartGenerator()
 
-    const simplifyModalShown = ref(false)
-    const simplifiedVersionLoaded = computed(
-      () => store.simplifiedVersionLoaded,
-    )
+const simplifyModalShown = ref(false)
 
-    const selectedVoiceType = computed(() => store.selectedVoiceType)
+const selectedVoiceType = computed(() => store.selectedVoiceType)
 
-    const generateButtonDisabled = computed(
-      () => !selectedVoiceType.value || !store.userText,
-    )
+const generateButtonDisabled = computed(
+  () => !selectedVoiceType.value || !store.userText,
+)
 
-    const simplifyDisabled = computed(() => !store.stream)
+const simplifyDisabled = computed(
+  () => !store.stream || store.simplifiedVersionLoaded,
+)
 
-    const rightButtonLabel = computed(() =>
-      simplifiedVersionLoaded.value
-        ? 'Generate audio from edited points'
-        : 'Simplify & edit',
-    )
-
-    function openSimplifyModal() {
-      simplifyModalShown.value = true
-    }
-
-    function closeSimplifyModal() {
-      simplifyModalShown.value = false
-    }
-
-    async function generateAudio() {
-      store.simplifyAcoustParamsDocument()
-
-      await Promise.all([
-        store.getAudioStream({
-          inputType: 'ACOUSTPARAMS',
-          simplified: true,
-        }),
-        store.getAudioPhonemes({
-          inputType: 'ACOUSTPARAMS',
-          simplified: true,
-        }),
-      ])
-
-      generateChart({
-        color: chartColor.value,
-        dataset: dataset.value,
-        originalDataset: originalDataset.value,
-        editable: true,
-      })
-
-      closeSimplifyModal()
-    }
-
-    function generateAudioFromEditedPoints() {
-      store.getAudioStream({
-        inputType: 'ACOUSTPARAMS',
-        simplified: true,
-      })
-    }
-
-    function onRightButtonClick() {
-      if (simplifiedVersionLoaded.value) {
-        generateAudioFromEditedPoints()
-      } else {
-        openSimplifyModal()
-      }
-    }
-
-    return {
-      generateButtonDisabled,
-      simplifyDisabled,
-      generateAudio,
-      simplifyModalShown,
-      openSimplifyModal,
-      closeSimplifyModal,
-      simplifiedVersionLoaded,
-      onRightButtonClick,
-      rightButtonLabel,
-      store,
-    }
-  },
+function openSimplifyModal() {
+  simplifyModalShown.value = true
 }
+
+function closeSimplifyModal() {
+  simplifyModalShown.value = false
+}
+
+async function generateAudio() {
+  store.simplifyAcoustParamsDocument()
+
+  await Promise.all([
+    store.getAudioStream({
+      inputType: 'ACOUSTPARAMS',
+      simplified: true,
+    }),
+    store.getAudioPhonemes({
+      inputType: 'ACOUSTPARAMS',
+      simplified: true,
+    }),
+  ])
+
+  generateChart({
+    color: chartColor.value,
+    dataset: dataset.value,
+    originalDataset: originalDataset.value,
+    editable: true,
+  })
+
+  closeSimplifyModal()
+}
+
+const xmlDownloadUrl = computed(() => store.xmlDownloadUrl)
 </script>

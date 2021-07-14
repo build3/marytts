@@ -1,4 +1,5 @@
 import * as d3 from 'd3'
+import { computed } from 'vue'
 
 import { useStore } from '../../store/createStore'
 
@@ -93,6 +94,8 @@ function getPhraseData({
   store,
   chartPointContainer,
   phraseIndex,
+  debouncedRegenerateAudio,
+  phonemeDictionary,
 }) {
   const timeValues = phonemes.map(({ x }) => x)
   const minTimeValue = d3.min(timeValues)
@@ -113,7 +116,19 @@ function getPhraseData({
     .style('user-select', 'none')
 
   phonemes.forEach(
-    ({ x, y, datasetIndex, editable: pointEditable }, pointIndex) => {
+    (
+      {
+        x,
+        y,
+        datasetIndex,
+        editable: pointEditable,
+        phonemeName,
+        repeated,
+        duration,
+        node,
+      },
+      pointIndex,
+    ) => {
       chartPointContainer
         .append('circle')
         .attr('fill', color)
@@ -136,6 +151,57 @@ function getPhraseData({
             (y * (initialContainerHeight - margin.top - margin.bottom)) /
               yScale.domain()[0],
         )
+
+      if (!repeated && editable) {
+        const phonemeSwitcherContainer = chartSvg
+          .append('foreignObject')
+          .attr(
+            'x',
+            margin.left +
+              (x * (chartWidth - margin.left - margin.right)) /
+                xScale.domain()[1],
+          )
+          .attr('y', initialContainerHeight - margin.bottom)
+          .attr('height', margin.bottom)
+          .attr(
+            'width',
+            ((chartWidth - margin.left - margin.right) * duration) /
+              xScale.domain()[1],
+          )
+          .append('xhtml:div')
+          .style('height', '100%')
+          .style('padding', '4px 2px')
+          .style('width', '100%')
+
+        const phonemeSwitcherSelect = phonemeSwitcherContainer
+          .append('xhtml:select')
+          .style('align-items', 'center')
+          .style('background-color', 'white')
+          .style('border', `2px solid ${color}`)
+          .style('border-radius', '4px')
+          .style('display', 'flex')
+          .style('font-size', '0.8rem')
+          .style('height', '100%')
+          .style('width', '100%')
+
+        phonemeSwitcherSelect.on('change', event => {
+          node.setAttribute('p', event.target.value)
+
+          debouncedRegenerateAudio()
+        })
+        ;[...phonemeDictionary.vowels, ...phonemeDictionary.consonants].forEach(
+          phoneme => {
+            const option = phonemeSwitcherSelect
+              .append('option')
+              .attr('value', phoneme)
+              .text(phoneme)
+
+            if (phoneme === phonemeName) {
+              option.attr('selected', true)
+            }
+          },
+        )
+      }
     },
   )
 
@@ -233,6 +299,7 @@ function redrawChart({
   editable,
   initialContainerHeight,
   store,
+  phonemeDictionary,
 }) {
   const root = d3.select('#main-chart-container')
 
@@ -264,32 +331,45 @@ function redrawChart({
     .domain([0, maxXValue])
     .range([0, chartWidth - margin.left - margin.right])
 
-  const xAxis = d3
-    .axisBottom()
-    .tickValues(allTimeValues)
-    .tickFormat((_, index) =>
-      datasetPhonemes[index]?.repeated
-        ? ''
-        : datasetPhonemes[index]?.phonemeName,
-    )
-    .scale(xScale)
+  if (editable) {
+    chartSvg
+      .append('g')
+      .append('path')
+      .attr(
+        'd',
+        `M${margin.left},${initialContainerHeight - margin.bottom + 0.5} h${
+          chartWidth - margin.left - margin.right
+        }`,
+      )
+      .attr('stroke', 'black')
+  } else {
+    const xAxis = d3
+      .axisBottom()
+      .tickValues(allTimeValues)
+      .tickFormat((_, index) =>
+        datasetPhonemes[index]?.repeated
+          ? ''
+          : datasetPhonemes[index]?.phonemeName,
+      )
+      .scale(xScale)
 
-  chartSvg
-    .append('text')
-    .attr('x', margin.left + (chartWidth - margin.left - margin.right) / 2)
-    .attr('y', initialContainerHeight - margin.bottom)
-    .attr('dy', axisLabelFontSize * 2)
-    .attr('text-anchor', 'middle')
-    .attr('font-size', axisLabelFontSize)
-    .text('Phoneme name')
+    chartSvg
+      .append('g')
+      .attr(
+        'transform',
+        `translate(${margin.left}, ${initialContainerHeight - margin.bottom})`,
+      )
+      .call(xAxis)
 
-  chartSvg
-    .append('g')
-    .attr(
-      'transform',
-      `translate(${margin.left}, ${initialContainerHeight - margin.bottom})`,
-    )
-    .call(xAxis)
+    chartSvg
+      .append('text')
+      .attr('x', margin.left + (chartWidth - margin.left - margin.right) / 2)
+      .attr('y', initialContainerHeight - margin.bottom)
+      .attr('dy', axisLabelFontSize * 2)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', axisLabelFontSize)
+      .text('Phoneme name')
+  }
 
   // Y AXIS
 
@@ -356,6 +436,10 @@ function redrawChart({
   // Y AXIS HORIZONTAL GRID LINES
 
   yScale.ticks(yTickCount).forEach(y => {
+    if (y === 0) {
+      return
+    }
+
     const gridLineY =
       initialContainerHeight -
       margin.bottom -
@@ -441,7 +525,7 @@ function redrawChart({
       .attr('height', 32)
       .append('xhtml:div')
       .style('background-color', 'white')
-      .style('border', '2px solid black')
+      .style('border', `2px solid ${color}`)
       .style('border-radius', '8px')
       .style('height', '100%')
       .style('width', '100%')
@@ -562,6 +646,8 @@ function redrawChart({
       initialContainerHeight,
       store,
       phraseIndex,
+      debouncedRegenerateAudio,
+      phonemeDictionary,
     }),
   )
 
@@ -685,6 +771,8 @@ function redrawChart({
 export default function getChartGenerator() {
   const store = useStore()
 
+  const phonemeDictionary = computed(() => store.phonemeDictionary)
+
   return ({ dataset, originalDataset, color, editable }) => {
     const initialContainerHeight = parseInt(
       getComputedStyle(document.querySelector('#main-chart-container')).height,
@@ -705,6 +793,7 @@ export default function getChartGenerator() {
         editable,
         initialContainerHeight,
         store,
+        phonemeDictionary: phonemeDictionary.value,
       })
     }
 

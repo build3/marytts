@@ -44,6 +44,12 @@ module.exports = (env = {}) => ({
           },
         },
       },
+      {
+        test: /\.xml$/,
+        use: {
+          loader: 'raw-loader',
+        },
+      },
     ],
   },
   plugins: [

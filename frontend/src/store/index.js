@@ -1,3 +1,5 @@
+import processAllophoneDictionaries from './allophoneDictionaries'
+
 import { createStore } from './createStore'
 import {
   getExportXmlContent,
@@ -29,6 +31,7 @@ const store = createStore({
     chartColor: '#00d1b2',
     xmlDownloadUrl: null,
     simplifiedVersionLoaded: false,
+    allophoneDictionaries: null,
     error: {
       fetchVoices: null,
       getAudioStream: null,
@@ -237,11 +240,28 @@ const store = createStore({
         )
       }
     },
+
+    async initializeAllophoneDictionaries() {
+      this.allophoneDictionaries = await processAllophoneDictionaries()
+    },
+
+    playStream() {
+      const audioElement = document.querySelector('audio')
+
+      if (audioElement) {
+        audioElement.currentTime = 0
+        audioElement.play()
+      }
+    },
   },
 
   getters: {
     selectedVoice() {
       return this.voiceTypes.find(({ type }) => type === this.selectedVoiceType)
+    },
+
+    phonemeDictionary() {
+      return this.allophoneDictionaries?.[this.selectedVoice?.locale] ?? {}
     },
   },
 })

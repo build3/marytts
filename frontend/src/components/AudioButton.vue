@@ -1,6 +1,6 @@
 <template>
   <button
-    class="button has-text-weight-bold is-primary is-fullwidth"
+    class="button has-text-weight-bold is-primary is-fullwidth is-light"
     :disabled="disabled"
     @click="generateAudio"
   >

@@ -1,19 +1,6 @@
 version: "3.7"
 
 services:
-  mtts-backend:
-    restart: "no"
-    build:
-      context: ../../backend
-      dockerfile: ../docker/development/Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      MARYTTS_URL: http://mtts-marytts:59125/
-    volumes:
-      - "../../backend:/app"
-      - "mtts-pip-cache:/root/.cache/pip"
-
   mtts-marytts:
     restart: "no"
     image: synesthesiam/marytts:5.2
@@ -23,7 +10,6 @@ services:
   mtts-frontend:
     environment:
       - VUE_APP_MARYTTS_URL=http://localhost:59125
-      - VUE_APP_API_URL=http://localhost:8000
     restart: "no"
     image: node:12
     expose:
@@ -42,5 +28,4 @@ services:
       - 8080:8080
 
 volumes:
-  mtts-pip-cache:
   mtts-node_modules:

@@ -1,34 +1,34 @@
 <template>
-  <nav class="navbar" role="navigation" aria-label="main navigation">
-    <div class="navbar-brand">
-      <h1 class="navbar-item">Mary Text to Speech</h1>
-    </div>
-  </nav>
-  <section class="is-flex is-flex-direction-column is-align-items-stretch px-5">
-    <div class="notification is-danger" v-if="hasAnyError">
-      <button class="delete" @click="clearErrors"></button>
-      <div v-for="errorMessage in errorMessages" :key="errorMessage">
-        {{ errorMessage }}
+  <section
+    class="
+      has-background-primary
+      px-4
+      py-4
+      is-flex is-flex-direction-column is-align-items-center
+    "
+  >
+    <div class="form-container">
+      <h1 class="title is-4 has-text-white has-text-centered">
+        Mary Text To Speech
+      </h1>
+      <div class="notification is-danger" v-if="hasAnyError">
+        <button class="delete" @click="clearErrors"></button>
+        <div v-for="errorMessage in errorMessages" :key="errorMessage">
+          {{ errorMessage }}
+        </div>
       </div>
+
+      <from-text />
+
+      <audio :src="stream" autoplay="true" controls="" type="audio/wave" />
     </div>
-    <mary-tabs />
-
-    <component :is="currentActiveTabComponent" />
-
-    <audio
-      class="pt-4"
-      :class="{ 'is-invisible': isStreamEmpty }"
-      :src="stream"
-      autoplay="true"
-      controls=""
-      type="audio/wave"
-    />
-
+  </section>
+  <div class="main-chart-container">
     <div class="chart-size-container">
       <div class="chart-size" id="main-chart-container" />
     </div>
-  </section>
-  <component :is="currentActiveTabFooter" :is-stream-empty="isStreamEmpty" />
+    <div class="phoneme-selector-container">&nbsp;</div>
+  </div>
 </template>
 
 <script setup>
@@ -47,14 +47,6 @@ provide('currentActiveTab', currentActiveTab)
 provide('setCurrentActiveTab', setCurrentActiveTab)
 
 const stream = computed(() => store.stream)
-const isStreamEmpty = computed(() => !stream.value)
-
-const currentActiveTabComponent = computed(() =>
-  currentActiveTab.value === textTab ? 'from-text' : 'from-xml',
-)
-const currentActiveTabFooter = computed(() =>
-  currentActiveTab.value === textTab ? 'from-text-footer' : 'from-xml-footer',
-)
 
 const errors = computed(() => store.error)
 const errorMessages = computed(() => Object.values(errors.value))
@@ -66,5 +58,6 @@ const clearErrors = () => {
 
 onMounted(() => {
   store.fetchVoices()
+  store.initializeAllophoneDictionaries()
 })
 </script>

@@ -146,6 +146,7 @@ export function transformPhraseNodesToDataset(phraseNodes) {
                 ? lastPhonemeData.nodeFrequencyIndex
                 : null,
               type: 'phoneme',
+              duration,
               phraseIndex: phraseNodeIndex,
               voiced: true,
               editable: lastPhonemeNotDrawn,
@@ -161,6 +162,7 @@ export function transformPhraseNodesToDataset(phraseNodes) {
                   phonemeName,
                   repeated: progress !== 0,
                   type: 'phoneme',
+                  duration,
                   phraseIndex: phraseNodeIndex,
                   notDrawn:
                     progress === 100 &&
@@ -185,13 +187,28 @@ export function transformPhraseNodesToDataset(phraseNodes) {
                 : null,
               phonemeName,
               type: 'phoneme',
+              duration,
               phraseIndex: phraseNodeIndex,
               voiced: false,
               editable: lastPhonemeNotDrawn,
             })
 
-            if (nextPhonemeNode?.nodeName !== 'boundary') {
-              accumulatedPhonemeStart += duration
+            accumulatedPhonemeStart += duration
+
+            if (nextPhonemeNode?.nodeName === 'boundary') {
+              phonemesData.push({
+                x: accumulatedPhonemeStart,
+                y: 0,
+                node: phonemeNode,
+                nodeFrequencyIndex: null,
+                phonemeName,
+                type: 'phoneme',
+                duration,
+                phraseIndex: phraseNodeIndex,
+                repeated: true,
+                voiced: false,
+                editable: false,
+              })
             }
           }
         }
@@ -406,10 +423,10 @@ export function simplifyAcoustParamsDocument(acoustParamsDocument) {
       const frequencyPoints = getPhonemeNodeAbsolutePoints(phonemeNode)
 
       const simplifiedFrequencyPoints = [
-        points => douglasPeuckerSimplification(points, 1),
-        points => removeDuplicatePoints(points, 10),
+        points => douglasPeuckerSimplification(points, 5),
+        points => removeDuplicatePoints(points, 15),
         points =>
-          removeDuplicatePhonemeBoundaryPoints(points, previousPhonemeNode, 10),
+          removeDuplicatePhonemeBoundaryPoints(points, previousPhonemeNode, 15),
       ].reduce((points, fn) => fn(points), frequencyPoints)
 
       const duration = parseFloat(phonemeNode.getAttribute('d'))
