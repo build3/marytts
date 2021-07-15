@@ -72,7 +72,7 @@ function drawOriginalPhraseData({
     .append('path')
     .datum(phonemes)
     .attr('fill', 'none')
-    .attr('stroke', 'rgba(0, 0, 0, 0.75)')
+    .attr('stroke', 'rgba(0, 0, 0, 0.25)')
     .attr('stroke-width', 2)
     .attr('stroke-dasharray', '4 1')
     .style('user-select', 'none')
@@ -95,7 +95,6 @@ function getPhraseData({
   chartPointContainer,
   phraseIndex,
   debouncedRegenerateAudio,
-  phonemeDictionary,
 }) {
   const timeValues = phonemes.map(({ x }) => x)
   const minTimeValue = d3.min(timeValues)
@@ -125,7 +124,7 @@ function getPhraseData({
         phonemeName,
         repeated,
         duration,
-        node,
+        originalNode,
       },
       pointIndex,
     ) => {
@@ -153,54 +152,46 @@ function getPhraseData({
         )
 
       if (!repeated && editable) {
+        const selectorX =
+          margin.left +
+          (x * (chartWidth - margin.left - margin.right)) / xScale.domain()[1]
+
+        const selectorWidth =
+          ((chartWidth - margin.left - margin.right) * duration) /
+          xScale.domain()[1]
+
         const phonemeSwitcherContainer = chartSvg
           .append('foreignObject')
-          .attr(
-            'x',
-            margin.left +
-              (x * (chartWidth - margin.left - margin.right)) /
-                xScale.domain()[1],
-          )
+          .attr('x', selectorX)
           .attr('y', initialContainerHeight - margin.bottom)
           .attr('height', margin.bottom)
-          .attr(
-            'width',
-            ((chartWidth - margin.left - margin.right) * duration) /
-              xScale.domain()[1],
-          )
+          .attr('width', selectorWidth)
           .append('xhtml:div')
           .style('height', '100%')
           .style('padding', '4px 2px')
           .style('width', '100%')
 
         const phonemeSwitcherSelect = phonemeSwitcherContainer
-          .append('xhtml:select')
-          .style('align-items', 'center')
-          .style('background-color', 'white')
-          .style('border', `2px solid ${color}`)
-          .style('border-radius', '4px')
-          .style('display', 'flex')
-          .style('font-size', '0.8rem')
-          .style('height', '100%')
-          .style('width', '100%')
+          .append('xhtml:div')
+          .attr('class', 'phoneme-selector')
+          .text(phonemeName)
 
-        phonemeSwitcherSelect.on('change', event => {
-          node.setAttribute('p', event.target.value)
+        phonemeSwitcherSelect.on('click', function onPhonemeSwitcherClick() {
+          this.classList.add('selected')
 
-          debouncedRegenerateAudio()
+          store.openPhonemeSelector({
+            node: originalNode,
+            phonemeName: phonemes[pointIndex].phonemeName,
+            datasetIndex,
+            selectorX,
+            selectorWidth,
+            onPhonemeChange({ newPhoneme }) {
+              phonemes[pointIndex].phonemeName = newPhoneme
+              phonemeSwitcherSelect.text(newPhoneme)
+              debouncedRegenerateAudio()
+            },
+          })
         })
-        ;[...phonemeDictionary.vowels, ...phonemeDictionary.consonants].forEach(
-          phoneme => {
-            const option = phonemeSwitcherSelect
-              .append('option')
-              .attr('value', phoneme)
-              .text(phoneme)
-
-            if (phoneme === phonemeName) {
-              option.attr('selected', true)
-            }
-          },
-        )
       }
     },
   )
@@ -213,19 +204,21 @@ function getPhraseData({
   const colorGradient1 = `${color}08`
   const colorGradient2 = `${color}32`
 
-  phonemes.forEach(({ x }, xIndex) => {
-    const xChartValue = (x - minTimeValue) / timeRange
+  phonemes
+    .filter(({ repeated }) => !repeated)
+    .forEach(({ x }, xIndex) => {
+      const xChartValue = (x - minTimeValue) / timeRange
 
-    chartPathAreaGradient
-      .append('stop')
-      .attr('offset', xChartValue - 0.001)
-      .attr('stop-color', xIndex % 2 === 0 ? colorGradient1 : colorGradient2)
+      chartPathAreaGradient
+        .append('stop')
+        .attr('offset', xChartValue - 0.001)
+        .attr('stop-color', xIndex % 2 === 0 ? colorGradient1 : colorGradient2)
 
-    chartPathAreaGradient
-      .append('stop')
-      .attr('offset', xChartValue + 0.0001)
-      .attr('stop-color', xIndex % 2 === 0 ? colorGradient2 : colorGradient1)
-  })
+      chartPathAreaGradient
+        .append('stop')
+        .attr('offset', xChartValue + 0.0001)
+        .attr('stop-color', xIndex % 2 === 0 ? colorGradient2 : colorGradient1)
+    })
 
   function calculateChartPath() {
     chartPath.attr(
@@ -659,7 +652,7 @@ function redrawChart({
     .append('xhtml:div')
     .attr(
       'style',
-      'background-color: #444444; border-radius: 4px; padding: 4px; width: max-content; transform: translate(-50%, 50%); transition: opacity 0.5s ease;',
+      'background-color: #444444; border-radius: 4px; padding: 2px 4px; width: max-content; transform: translate(25%, -50%); transition: opacity 0.5s ease;',
     )
     .text('')
     .style('opacity', 0)

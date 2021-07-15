@@ -1,36 +1,59 @@
 <template>
-  <div class="field">
-    <div class="control">
-      <input
-        class="input is-primary"
-        type="text"
-        placeholder="Insert your text here"
-        v-model="store.userText"
-      />
-    </div>
-  </div>
-
-  <voice-select />
-
-  <div class="button-row">
-    <audio-button :disabled="generateButtonDisabled" />
+  <div class="button-row py-4">
+    <button
+      class="button is-primary has-text-weight-bold is-flex-mobile-button"
+      :disabled="!stream"
+      @click="playStream"
+    >
+      <span class="icon is-small">
+        <play-icon />
+      </span>
+      <span class="button-label"> Play audio </span>
+    </button>
 
     <button
-      class="button has-text-weight-bold is-primary is-fullwidth is-light"
+      class="
+        button
+        has-text-weight-bold
+        is-primary is-fullwidth is-flex-mobile-button
+      "
       :disabled="simplifyDisabled"
       @click="openSimplifyModal"
     >
-      Simplify &amp; edit
+      <span class="icon is-small">
+        <edit-icon />
+      </span>
+      <span class="button-label"> Simplify &amp; edit </span>
     </button>
 
-    <a :href="xmlDownloadUrl" download="MaryTTS.xml">
+    <a :href="xmlDownloadUrl" download="MaryTTS.xml" v-if="xmlDownloadUrl">
       <button
-        class="button has-text-weight-bold is-primary is-fullwidth is-light"
-        :disabled="generateButtonDisabled"
+        class="
+          button
+          has-text-weight-bold
+          is-primary is-fullwidth is-flex-mobile-button
+        "
       >
-        Export XML
+        <span class="icon is-medium">
+          <export-icon />
+        </span>
+        <span class="button-label">Export to XML</span>
       </button>
     </a>
+    <button
+      class="
+        button
+        has-text-weight-bold
+        is-primary is-fullwidth is-flex-mobile-button
+      "
+      v-else
+      disabled
+    >
+      <span class="icon is-medium">
+        <export-icon />
+      </span>
+      <span class="button-label">Export to XML</span>
+    </button>
   </div>
 
   <transition name="fade">
@@ -38,14 +61,10 @@
       <div class="modal-background" />
       <div class="modal-content">
         <div class="box p-5">
-          <h1 class="title has-text-centered is-4 mb-0">
-            Are you sure you want to simplify &amp; edit the chart? This will
+          <h1 class="title has-text-centered is-4 mb-5">
+            Are you sure you want to simplify &amp; edit the chart? It will
             overwrite the current one.
           </h1>
-          <h2 class="subtitle has-text-centered is-6 my-0 py-5">
-            In order to bring back the original audio file use the "Generate
-            audio" button.
-          </h2>
           <div class="button-row">
             <button
               class="button has-text-weight-bold is-danger is-fullwidth"
@@ -68,9 +87,13 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { useStore } from '../store/createStore'
 
 import getChartGenerator from '../assets/scripts/phonemesChart'
+import { useStore } from '../store/createStore'
+
+import EditIcon from '../icons/Edit.vue'
+import PlayIcon from '../icons/Play.vue'
+import ExportIcon from '../icons/Export.vue'
 
 const store = useStore()
 
@@ -81,22 +104,16 @@ const generateChart = getChartGenerator()
 
 const simplifyModalShown = ref(false)
 
-const selectedVoiceType = computed(() => store.selectedVoiceType)
-
-const generateButtonDisabled = computed(
-  () => !selectedVoiceType.value || !store.userText,
-)
-
 const simplifyDisabled = computed(
   () => !store.stream || store.simplifiedVersionLoaded,
 )
 
-function openSimplifyModal() {
-  simplifyModalShown.value = true
-}
-
 function closeSimplifyModal() {
   simplifyModalShown.value = false
+}
+
+function openSimplifyModal() {
+  simplifyModalShown.value = true
 }
 
 async function generateAudio() {
@@ -124,4 +141,9 @@ async function generateAudio() {
 }
 
 const xmlDownloadUrl = computed(() => store.xmlDownloadUrl)
+
+const stream = computed(() => store.stream)
+const playStream = () => {
+  store.playStream()
+}
 </script>

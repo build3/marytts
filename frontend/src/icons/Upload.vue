@@ -1,0 +1,16 @@
+<template>
+  <svg
+    viewBox="0 0 15 15"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    width="15"
+    height="15"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M7.486.807l3.603 3.326-.678.734L8 2.642V11H7V2.707L4.854 4.854l-.708-.708 3.34-3.34zM2 13V7H1v7h13V7h-1v6H2z"
+      fill="currentColor"
+    ></path>
+  </svg>
+</template>

@@ -37,6 +37,21 @@ const store = createStore({
       getAudioStream: null,
       getAudioPhonemes: null,
     },
+    previousFields: {
+      userText: '',
+      selectedVoiceType: null,
+      simplifiedVersionLoaded: false,
+      xmlFile: null,
+    },
+    phonemeSelector: {
+      isOpen: false,
+      node: null,
+      currentPhonemeName: '',
+      onPhonemeChange: null,
+      datasetIndex: null,
+      selectorX: 0,
+      selectorWidth: 0,
+    },
   }),
 
   actions: {
@@ -188,6 +203,13 @@ const store = createStore({
 
         this.dataset = transformPhraseNodesToDataset(phraseNodes)
 
+        if (!simplified) {
+          this.previousFields.userText = this.userText
+          this.previousFields.selectedVoiceType = this.selectedVoiceType
+          this.previousFields.simplifiedVersionLoaded = false
+          this.previousFields.xmlFile = this.xmlFile
+        }
+
         this.regenerateXmlDownloadUrl()
       } catch (err) {
         this.error.getAudioPhonemes = err.message
@@ -253,6 +275,42 @@ const store = createStore({
         audioElement.play()
       }
     },
+
+    openPhonemeSelector({
+      phonemeName,
+      node,
+      onPhonemeChange,
+      datasetIndex,
+      selectorX,
+      selectorWidth,
+    }) {
+      this.phonemeSelector.isOpen = true
+      this.phonemeSelector.node = node
+      this.phonemeSelector.currentPhonemeName = phonemeName
+      this.phonemeSelector.datasetIndex = datasetIndex
+      this.phonemeSelector.onPhonemeChange = onPhonemeChange
+      this.phonemeSelector.selectorX = selectorX
+      this.phonemeSelector.selectorWidth = selectorWidth
+    },
+
+    closePhonemeSelector() {
+      this.phonemeSelector.isOpen = false
+
+      document.querySelectorAll('.phoneme-selector').forEach(element => {
+        element.classList.remove('selected')
+      })
+    },
+
+    selectNewPhoneme({ newPhoneme }) {
+      this.phonemeSelector.node?.setAttribute('p', newPhoneme)
+      this.phonemeSelector.onPhonemeChange?.({ newPhoneme })
+
+      if (this.dataset?.[this.phonemeSelector.datasetIndex]) {
+        this.dataset[this.phonemeSelector.datasetIndex].phonemeName = newPhoneme
+      }
+
+      this.closePhonemeSelector()
+    },
   },
 
   getters: {
@@ -262,6 +320,19 @@ const store = createStore({
 
     phonemeDictionary() {
       return this.allophoneDictionaries?.[this.selectedVoice?.locale] ?? {}
+    },
+
+    processStateDirty() {
+      function checkIfFieldDirty(fieldName) {
+        return this.previousFields[fieldName] !== this[fieldName]
+      }
+
+      return [
+        'userText',
+        'selectedVoiceType',
+        'simplifiedVersionLoaded',
+        'xmlFile',
+      ].some(checkIfFieldDirty.bind(this))
     },
   },
 })

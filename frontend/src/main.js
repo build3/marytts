@@ -10,10 +10,9 @@ import App from './App.vue'
 import Tabs from './components/Tabs.vue'
 import FromXml from './components/FromXml.vue'
 import AudioButton from './components/AudioButton.vue'
-import FromText from './components/FromText.vue'
+import InputRow from './components/InputRow.vue'
 import VoiceSelect from './components/VoiceSelect.vue'
-import FromXmlFooter from './components/FromXmlFooter.vue'
-import FromTextFooter from './components/FromTextFooter.vue'
+import Controls from './components/Controls.vue'
 
 import './assets/styles/main.scss'
 import store from './store'
@@ -27,10 +26,9 @@ app.use(store)
 app.component('MaryTabs', Tabs)
 app.component('FromXml', FromXml)
 app.component('AudioButton', AudioButton)
-app.component('FromText', FromText)
+app.component('InputRow', InputRow)
 app.component('VoiceSelect', VoiceSelect)
-app.component('FromTextFooter', FromTextFooter)
-app.component('FromXmlFooter', FromXmlFooter)
+app.component('Controls', Controls)
 
 app.component('FontAwesomeIcon', FontAwesomeIcon)
 

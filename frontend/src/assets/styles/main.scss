@@ -1,3 +1,5 @@
+@use "sass:color";
+
 @import "~bulma/bulma.sass";
 
 body {
@@ -37,15 +39,6 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
 
-  .voice-select-container {
-    display: grid;
-    grid-column-gap: 1rem;
-    grid-template-columns: repeat(3, 1fr);
-
-    > .field {
-      grid-column: 1 / span 2;
-    }
-  }
 
   .is-invisible {
     visibility: hidden;
@@ -61,6 +54,58 @@ body {
   }
 }
 
+button.button.is-primary:not([disabled]) {
+  box-shadow: 0 4px 8px rgb(8 72 62 / 30%);
+}
+
+button.button.is-primary:not([disabled]):not(:hover) {
+  background-color: #00bda0;
+}
+
+.file {
+  &.is-spread {
+    grid-column: 1 / span 3;
+
+    .file-cta.file-cta {
+      border-bottom-left-radius: 0.25rem;
+      border-top-left-radius: 0.25rem;
+    }
+  }
+
+  &.is-primary.is-fullwidth {
+    box-shadow: 0 4px 8px rgb(8 72 62 / 30%);
+    width: 100%;
+  }
+
+  .file-cta.file-cta {
+    background-color: #ffffff;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+    border-width: 0;
+    color: #00bda0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+
+    &:hover {
+      background-color: #e0fffa;
+      color: #00bda0;
+    }
+
+    .file-label {
+      width: unset;
+    }
+
+    .icon {
+      margin-right: 0.25em;
+
+      @include mobile {
+        margin-right: unset;
+      }
+    }
+  }
+}
+
 html,
 body,
 #app {
@@ -71,7 +116,7 @@ body,
 #app {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
 }
 
 .form-container {
@@ -87,12 +132,189 @@ body,
   width: 100%;
 }
 
-.phoneme-selector-container {
-  height: 4rem;
+.voice-select-container {
+  display: grid;
+  grid-column-gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+
+  > .field {
+    grid-column: 1 / span 2;
+  }
+}
+
+.from-text-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  > .field {
+    grid-column: 1 / span 2;
+
+    .input {
+      border-bottom-right-radius: 0;
+      border-top-right-radius: 0;
+    }
+  }
 }
 
 .modal .modal-background {
   backdrop-filter: blur(2px);
+}
+
+.is-flex-mobile-button {
+  display: flex;
+
+  @include mobile {
+    flex-direction: column;
+    height: 3rem;
+    padding: 0;
+
+    .icon:first-child:not(:last-child) {
+      display: flex;
+      height: 1.5rem;
+      margin: 0;
+      place-content: center;
+      width: 1.5rem;
+    }
+
+    .button-label {
+      font-size: 0.7em;
+      letter-spacing: -0.05em;
+    }
+  }
+}
+
+input.input, .select select, .select.select {
+  border-width: 0;
+
+  @include mobile {
+    height: 3rem;
+  }
+}
+
+.phoneme-selector-container {
+  min-height: 7rem;
+  width: 100%;
+}
+
+.phoneme-selector {
+  align-items: center;
+  background-color: $white;
+  border: 2px solid $primary;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  font-size: 0.9rem;
+  height: 100%;
+  justify-content: center;
+  padding: 0 0.25rem;
+  width: 100%;
+
+  &.selected {
+    background-color: color.adjust($primary, $lightness: 52.5%, $saturation: 52.5%);
+    border-bottom-color: color.adjust($primary, $lightness: 52.5%, $saturation: 52.5%);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.phoneme-selector-dropdown {
+  background-color: color.adjust($primary, $lightness: 52.5%, $saturation: 52.5%);
+  border: 2px solid $primary;
+  border-radius: 0.25rem;
+  position: relative;
+}
+
+.phoneme-selector-dropdown-fill {
+  background-color: color.adjust($primary, $lightness: 52.5%, $saturation: 52.5%);
+  bottom: 100%;
+  border-color: $primary;
+  border-style: solid;
+  border-width: 0 2px;
+  height: 0.5625rem;
+  pointer-events: none;
+  position: absolute;
+}
+
+.phoneme-selector-dropdown-header {
+  white-space: nowrap;
+}
+
+.phoneme-row-container {
+  align-items: center;
+  display: grid;
+  height: 1.5rem;
+  grid-column-gap: 0.5rem;
+  grid-template-columns: auto 1fr;
+}
+
+.phoneme-buttons-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+.phoneme-selector-input-row {
+  display: grid;
+  grid-column-gap: 1rem;
+  grid-template-columns: auto 1fr;
+}
+
+.phoneme-selector-label {
+  align-items: center;
+  display: inline-flex;
+  height: 1.5rem;
+}
+
+.phoneme-selector-input-container {
+  position: relative;
+}
+
+.phoneme-selector-input {
+  background-color: $white;
+  border: 1px solid $primary;
+  border-radius: 0.25rem;
+  color: $primary;
+  font-size: 1rem;
+  height: 1.5rem;
+  outline: $primary;
+  padding: 0.25rem;
+  padding-right: 1.5rem;
+  width: 100%;
+}
+
+.phoneme-selector-icon-container {
+  align-items: center;
+  bottom: 0.25rem;
+  display: flex;
+  position: absolute;
+  right: 0.25rem;
+  top: 0.25rem;
+  width: 1rem;
+}
+
+.phoneme-button {
+  align-items: center;
+  background-color: $white;
+  border: 1px solid $primary;
+  border-radius: 0.25rem;
+  color: $primary;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1.125rem;
+  height: 1.5rem;
+  justify-content: center;
+  padding: 0 0.25rem;
+  min-width: 1.5rem;
+  width: auto;
+
+  &:not(:last-child) {
+    margin-right: 0.25rem;
+  }
+
+  &.current {
+    background-color: $primary;
+    color: $white;
+  }
 }
 
 // transitions

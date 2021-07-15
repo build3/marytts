@@ -142,6 +142,7 @@ export function transformPhraseNodesToDataset(phraseNodes) {
               y: lastPhonemeNotDrawn ? lastPhonemeData.y : 0,
               phonemeName,
               node: lastPhonemeNotDrawn ? lastPhonemeData.node : phonemeNode,
+              originalNode: phonemeNode,
               nodeFrequencyIndex: lastPhonemeNotDrawn
                 ? lastPhonemeData.nodeFrequencyIndex
                 : null,
@@ -341,7 +342,7 @@ function removeDuplicatePoints(pointList, epsilon) {
 
     const pointDistance = distanceFromPointToPoint(point, previousPoint)
 
-    if (pointDistance < epsilon && pointIndex !== pointList.length - 1) {
+    if (pointDistance < epsilon) {
       return accumulatedPoints
     }
 

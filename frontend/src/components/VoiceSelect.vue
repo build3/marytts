@@ -16,13 +16,8 @@
         </div>
       </div>
     </div>
-    <button
-      class="button is-primary is-light has-text-weight-bold"
-      :disabled="!stream"
-      @click="playStream"
-    >
-      Play audio
-    </button>
+
+    <audio-button :disabled="generateButtonDisabled" />
   </div>
 </template>
 
@@ -32,12 +27,14 @@ import { useStore } from '../store/createStore'
 
 const store = useStore()
 
-const stream = computed(() => store.stream)
 const voiceTypes = computed(() => store.voiceTypes)
 
 const selectedVoiceType = toRef(store, 'selectedVoiceType')
 
-const playStream = () => {
-  store.playStream()
-}
+const generateButtonDisabled = computed(
+  () =>
+    !store.selectedVoiceType ||
+    (!store.xmlFile && !store.userText) ||
+    !store.processStateDirty,
+)
 </script>
