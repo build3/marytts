@@ -236,6 +236,8 @@ input.input, .select select, .select.select {
 }
 
 .phoneme-selector-dropdown-header {
+  font-size: 1.125rem;
+  font-weight: bold;
   white-space: nowrap;
 }
 
@@ -314,6 +316,11 @@ input.input, .select select, .select.select {
   &.current {
     background-color: $primary;
     color: $white;
+  }
+
+  &.original {
+    background-color: color.adjust($primary, $lightness: 50%, $saturation: 50%);;
+    color: $primary;
   }
 }
 

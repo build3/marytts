@@ -5,9 +5,7 @@
     class="mx-3 p-2 phoneme-selector-dropdown"
   >
     <div class="mb-1 phoneme-selector-input-row">
-      <h2 class="subtitle mb-0 phoneme-selector-dropdown-header">
-        Swap phoneme
-      </h2>
+      <h2 class="mb-0 phoneme-selector-dropdown-header">Swap phoneme</h2>
       <div class="phoneme-selector-input-container">
         <input
           autofocus
@@ -30,7 +28,7 @@
           :key="vowel"
           class="phoneme-button"
           @click="() => selectNewPhoneme(vowel)"
-          :class="{ current: isPhonemeCurrentlySelected(vowel) }"
+          :class="getPhonemeSelectedClass(vowel)"
         >
           {{ vowel }}
         </button>
@@ -44,7 +42,7 @@
           :key="consonant"
           class="phoneme-button"
           @click="() => selectNewPhoneme(consonant)"
-          :class="{ current: isPhonemeCurrentlySelected(consonant) }"
+          :class="getPhonemeSelectedClass(consonant)"
         >
           {{ consonant }}
         </button>
@@ -92,8 +90,20 @@ const foundConsonants = computed(() =>
   ),
 )
 
-function isPhonemeCurrentlySelected(phoneme) {
-  return phoneme === phonemeSelectorCurrentPhonemeName.value
+const phonemeSelectorOriginalPhonemeName = computed(
+  () => store.phonemeSelectorOriginalPhonemeName,
+)
+
+function getPhonemeSelectedClass(phoneme) {
+  if (phoneme === phonemeSelectorCurrentPhonemeName.value) {
+    return 'current'
+  }
+
+  if (phoneme === phonemeSelectorOriginalPhonemeName.value) {
+    return 'original'
+  }
+
+  return ''
 }
 
 const isPhonemeSelectorOpen = computed(() => store.phonemeSelector.isOpen)

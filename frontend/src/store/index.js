@@ -51,6 +51,7 @@ const store = createStore({
       datasetIndex: null,
       selectorX: 0,
       selectorWidth: 0,
+      originalPhonemeNames: [],
     },
   }),
 
@@ -137,6 +138,7 @@ const store = createStore({
 
       if (simplified) {
         this.originalDataset = this.dataset
+        this.phonemeSelector.originalPhonemeNames = []
       } else {
         this.dataset = null
         this.originalDataset = null
@@ -203,7 +205,11 @@ const store = createStore({
 
         this.dataset = transformPhraseNodesToDataset(phraseNodes)
 
-        if (!simplified) {
+        if (simplified) {
+          this.phonemeSelector.originalPhonemeNames = this.dataset.map(
+            ({ phonemeName }) => phonemeName,
+          )
+        } else {
           this.previousFields.userText = this.userText
           this.previousFields.selectedVoiceType = this.selectedVoiceType
           this.previousFields.simplifiedVersionLoaded = false
@@ -333,6 +339,14 @@ const store = createStore({
         'simplifiedVersionLoaded',
         'xmlFile',
       ].some(checkIfFieldDirty.bind(this))
+    },
+
+    phonemeSelectorOriginalPhonemeName() {
+      return (
+        this.phonemeSelector.originalPhonemeNames?.[
+          this.phonemeSelector.datasetIndex
+        ] ?? null
+      )
     },
   },
 })
