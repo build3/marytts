@@ -119,11 +119,16 @@ const store = createStore({
         }
 
         const processResponse = await fetch(`/mtts/process`, requestData)
+
+        if (!processResponse.ok) {
+          throw new Error('Failed to fetch the audio data')
+        }
+
         const processBlob = await processResponse.blob()
 
         this.stream = await transformProcessBlobToStream(processBlob)
-      } catch {
-        this.error.getAudioPhonemes = null
+      } catch (error) {
+        this.error.getAudioStream = error.message
 
         this.stream = null
       }

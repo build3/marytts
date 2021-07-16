@@ -11,12 +11,15 @@
       <h1 class="title is-4 has-text-white has-text-centered mb-4">
         MARY Text To Speech
       </h1>
-      <div class="notification is-danger" v-if="hasAnyError">
-        <button class="delete" @click="clearErrors"></button>
-        <div v-for="errorMessage in errorMessages" :key="errorMessage">
-          {{ errorMessage }}
+      <transition name="error">
+        <div
+          class="error-notification is-danger"
+          :key="firstErrorMessage"
+          v-if="firstErrorMessage"
+        >
+          {{ firstErrorMessage }}
         </div>
-      </div>
+      </transition>
 
       <input-row />
 
@@ -41,7 +44,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import PhonemeSelector from './components/PhonemeSelector.vue'
 import { useStore } from './store/createStore'
@@ -50,13 +53,28 @@ const store = useStore()
 
 const stream = computed(() => store.stream)
 
-const errors = computed(() => store.error)
-const errorMessages = computed(() => Object.values(errors.value))
-const hasAnyError = computed(() => errors.value.length > 0)
+const errorValues = computed(() => Object.values(store.error).filter(Boolean))
+const firstErrorMessage = computed(() => errorValues.value[0])
 
-const clearErrors = () => {
-  store.clearErrors()
-}
+const errorClearTimeout = ref(null)
+
+watch(
+  firstErrorMessage,
+  errorMessageValue => {
+    if (errorMessageValue) {
+      if (errorClearTimeout.value) {
+        clearTimeout(errorClearTimeout.value)
+      }
+
+      errorClearTimeout.value = setTimeout(() => {
+        store.clearErrors()
+      }, 3000)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 onMounted(() => {
   store.fetchVoices()

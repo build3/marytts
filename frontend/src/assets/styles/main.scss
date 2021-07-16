@@ -319,9 +319,28 @@ input.input, .select select, .select.select {
   }
 
   &.original {
-    background-color: color.adjust($primary, $lightness: 50%, $saturation: 50%);;
+    background-color: color.adjust($primary, $lightness: 50%, $saturation: 50%);
     color: $primary;
   }
+}
+
+.error-notification {
+  background-color: $white;
+  border: 0.25rem solid currentColor;
+  border-radius: 0.25rem;
+  bottom: 1.5rem;
+  box-shadow: 0 4px 8px rgb(100 100 100 / 0.4);
+  color: #e20e6f;
+  font-size: 1rem;
+  font-weight: bold;
+  left: 50%;
+  margin: 0;
+  padding: 0.5rem 1.5rem;
+  position: fixed;
+  transform: translate(-50%, 0%);
+  user-select: none;
+  width: fit-content;
+  z-index: 100;
 }
 
 // transitions
@@ -340,3 +359,19 @@ input.input, .select select, .select.select {
 .fade-leave-from {
   opacity: 1;
 }
+
+.error-enter-active,
+.error-leave-active {
+  transition: transform 0.25s ease;
+}
+
+.error-enter-from,
+.error-leave-to {
+  transform: translate(-50%, calc(100% + 1.5rem));
+}
+
+.error-enter-to,
+.error-leave-from {
+  transform: translate(-50%, 0%);
+}
+
