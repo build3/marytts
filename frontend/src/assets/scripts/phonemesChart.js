@@ -767,12 +767,12 @@ export default function getChartGenerator() {
   const phonemeDictionary = computed(() => store.phonemeDictionary)
 
   return ({ dataset, originalDataset, color, editable }) => {
-    const initialContainerHeight = parseInt(
-      getComputedStyle(document.querySelector('#main-chart-container')).height,
-      10,
-    )
-
     function onResizeHandler() {
+      const initialContainerHeight = parseInt(
+        getComputedStyle(document.querySelector('#main-chart-container'))
+          .height,
+        10,
+      )
       const chartWidth = getChartWidth()
 
       const chartSvg = d3.select('#main-chart-container svg')
@@ -788,6 +788,8 @@ export default function getChartGenerator() {
         store,
         phonemeDictionary: phonemeDictionary.value,
       })
+
+      store.closePhonemeSelector()
     }
 
     onResizeHandler()
