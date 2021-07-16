@@ -2,5 +2,5 @@
 
 set -e
 
-yarn
+yarn install --frozen-lockfile
 yarn dev
