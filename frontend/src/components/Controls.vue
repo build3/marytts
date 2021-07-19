@@ -1,5 +1,17 @@
 <template>
-  <div class="button-row py-4">
+  <div class="controls-section-row pt-2 pb-0" v-show="simplifiedVersionLoaded">
+    <div class="controls-section-label">Play audio</div>
+    <div class="controls-section-label">Export XML</div>
+  </div>
+  <div
+    class="button-row pb-4"
+    :class="{
+      'is-condensed': simplifiedVersionLoaded,
+      'pt-2': simplifiedVersionLoaded,
+      'pt-4': !simplifiedVersionLoaded,
+    }"
+    v-show="areControlsVisible"
+  >
     <button
       class="button is-primary has-text-weight-bold is-flex-mobile-button"
       :disabled="!stream"
@@ -8,7 +20,18 @@
       <span class="icon is-small">
         <play-icon />
       </span>
-      <span class="button-label"> Play audio </span>
+      <span class="button-label">{{ playButtonLabel }}</span>
+    </button>
+
+    <button
+      class="button is-primary has-text-weight-bold is-flex-mobile-button"
+      v-if="simplifiedVersionLoaded"
+      @click="playOriginalStream"
+    >
+      <span class="icon is-small">
+        <play-icon />
+      </span>
+      <span class="button-label">Original</span>
     </button>
 
     <button
@@ -18,6 +41,7 @@
         is-primary is-fullwidth is-flex-mobile-button
       "
       :disabled="simplifyDisabled"
+      v-if="!simplifiedVersionLoaded"
       @click="openSimplifyModal"
     >
       <span class="icon is-small">
@@ -26,34 +50,47 @@
       <span class="button-label"> Simplify &amp; edit </span>
     </button>
 
-    <a :href="xmlDownloadUrl" download="MaryTTS.xml" v-if="xmlDownloadUrl">
-      <button
-        class="
-          button
-          has-text-weight-bold
-          is-primary is-fullwidth is-flex-mobile-button
-        "
-      >
-        <span class="icon is-medium">
-          <export-icon />
-        </span>
-        <span class="button-label">Export to XML</span>
-      </button>
-    </a>
-    <button
-      class="
-        button
-        has-text-weight-bold
-        is-primary is-fullwidth is-flex-mobile-button
-      "
-      v-else
-      disabled
+    <div class="button-row-spacer" v-if="simplifiedVersionLoaded"></div>
+
+    <anchor-button :href="xmlDownloadUrl" file-name="MaryTTS.xml">
+      <template #default="{ disabled }">
+        <button
+          class="
+            button
+            has-text-weight-bold
+            is-primary is-fullwidth is-flex-mobile-button
+          "
+          :disabled="disabled"
+        >
+          <span class="icon is-medium">
+            <export-icon />
+          </span>
+          <span class="button-label">{{ exportXmlButtonLabel }}</span>
+        </button>
+      </template>
+    </anchor-button>
+
+    <anchor-button
+      :href="xmlOriginalDownloadUrl"
+      file-name="MaryTTS.xml"
+      v-if="xmlOriginalDownloadUrl"
     >
-      <span class="icon is-medium">
-        <export-icon />
-      </span>
-      <span class="button-label">Export to XML</span>
-    </button>
+      <template #default="{ disabled }">
+        <button
+          class="
+            button
+            has-text-weight-bold
+            is-primary is-fullwidth is-flex-mobile-button
+          "
+          :disabled="disabled"
+        >
+          <span class="icon is-medium">
+            <export-icon />
+          </span>
+          <span class="button-label">Original</span>
+        </button>
+      </template>
+    </anchor-button>
   </div>
 
   <transition name="fade">
@@ -94,6 +131,7 @@ import { useStore } from '../store/createStore'
 import EditIcon from '../icons/Edit.vue'
 import PlayIcon from '../icons/Play.vue'
 import ExportIcon from '../icons/Export.vue'
+import AnchorButton from './AnchorButton.vue'
 
 const store = useStore()
 
@@ -104,8 +142,23 @@ const generateChart = getChartGenerator()
 
 const simplifyModalShown = ref(false)
 
+const xmlDownloadUrl = computed(() => store.xmlDownloadUrl)
+const xmlOriginalDownloadUrl = computed(() => store.xmlOriginalDownloadUrl)
+const stream = computed(() => store.stream)
+const simplifiedVersionLoaded = computed(() => store.simplifiedVersionLoaded)
+
 const simplifyDisabled = computed(
   () => !store.stream || store.simplifiedVersionLoaded,
+)
+
+const areControlsVisible = computed(() => Boolean(store.dataset))
+
+const playButtonLabel = computed(() =>
+  store.simplifiedVersionLoaded ? 'Current' : 'Play',
+)
+
+const exportXmlButtonLabel = computed(() =>
+  store.simplifiedVersionLoaded ? 'Current' : 'Save XML',
 )
 
 function closeSimplifyModal() {
@@ -123,10 +176,12 @@ async function generateAudio() {
     store.getAudioStream({
       inputType: 'ACOUSTPARAMS',
       simplified: true,
+      copyOriginalStream: true,
     }),
     store.getAudioPhonemes({
       inputType: 'ACOUSTPARAMS',
       simplified: true,
+      copyOriginalStream: true,
     }),
   ])
 
@@ -140,10 +195,11 @@ async function generateAudio() {
   closeSimplifyModal()
 }
 
-const xmlDownloadUrl = computed(() => store.xmlDownloadUrl)
-
-const stream = computed(() => store.stream)
-const playStream = () => {
+function playStream() {
   store.playStream()
+}
+
+function playOriginalStream() {
+  store.playOriginalStream()
 }
 </script>

@@ -23,7 +23,19 @@
 
       <input-row />
 
-      <audio :src="stream" autoplay="true" controls="" type="audio/wave" />
+      <audio
+        id="stream"
+        :src="stream"
+        autoplay="true"
+        controls=""
+        type="audio/wave"
+      />
+      <audio
+        id="original-stream"
+        :src="originalStream"
+        controls=""
+        type="audio/wave"
+      />
     </div>
   </section>
 
@@ -52,6 +64,7 @@ import { useStore } from './store/createStore'
 const store = useStore()
 
 const stream = computed(() => store.stream)
+const originalStream = computed(() => store.originalStream)
 
 const errorValues = computed(() => Object.values(store.error).filter(Boolean))
 const firstErrorMessage = computed(() => errorValues.value[0])

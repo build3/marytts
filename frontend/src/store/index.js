@@ -18,6 +18,7 @@ const store = createStore({
     dataset: null,
     originalDataset: null,
     stream: null,
+    originalStream: null,
     xmlFile: null,
     voiceTypes: [],
     selectedVoiceType: null,
@@ -28,6 +29,7 @@ const store = createStore({
     phraseNodes: [],
     chartColor: '#00d1b2',
     xmlDownloadUrl: null,
+    xmlOriginalDownloadUrl: null,
     simplifiedVersionLoaded: false,
     allophoneDictionaries: null,
     error: {
@@ -68,14 +70,23 @@ const store = createStore({
       }
     },
 
-    async getAudioStream({ inputType, simplified = false, autoplay = true }) {
+    async getAudioStream({
+      inputType,
+      simplified = false,
+      autoplay = true,
+      copyOriginalStream = false,
+    }) {
       this.error.getAudioStream = null
+
+      if (copyOriginalStream) {
+        this.originalStream = this.stream
+      }
 
       this.stream = null
 
       this.simplifiedVersionLoaded = simplified
 
-      const audioElement = document.querySelector('audio')
+      const audioElement = document.querySelector('audio#stream')
 
       if (audioElement) {
         audioElement.autoplay = autoplay
@@ -141,6 +152,8 @@ const store = createStore({
 
       if (simplified) {
         this.originalDataset = this.dataset
+        this.xmlOriginalDownloadUrl = this.xmlDownloadUrl
+        this.xmlDownloadUrl = null
         this.phonemeSelector.originalPhonemeNames = []
       } else {
         this.dataset = null
@@ -149,6 +162,8 @@ const store = createStore({
         this.beginDocumentTags = ''
         this.endDocumentTags = ''
         this.acoustParamsSimplifiedDocument = null
+        this.xmlOriginalDownloadUrl = null
+        this.xmlDownloadUrl = null
       }
 
       try {
@@ -277,7 +292,16 @@ const store = createStore({
     },
 
     playStream() {
-      const audioElement = document.querySelector('audio')
+      const audioElement = document.querySelector('audio#stream')
+
+      if (audioElement) {
+        audioElement.currentTime = 0
+        audioElement.play()
+      }
+    },
+
+    playOriginalStream() {
+      const audioElement = document.querySelector('audio#original-stream')
 
       if (audioElement) {
         audioElement.currentTime = 0
