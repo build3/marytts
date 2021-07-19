@@ -197,7 +197,7 @@ input.input, .select select, .select.select {
 }
 
 .phoneme-selector-container {
-  min-height: 7rem;
+  min-height: 8rem;
   width: 100%;
 }
 
@@ -249,9 +249,9 @@ input.input, .select select, .select.select {
 .phoneme-row-container {
   align-items: center;
   display: grid;
-  height: 1.5rem;
   grid-column-gap: 0.5rem;
   grid-template-columns: auto 1fr;
+  min-height: 1.5rem;
 }
 
 .phoneme-buttons-container {
