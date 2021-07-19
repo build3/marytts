@@ -1,15 +1,13 @@
 import processAllophoneDictionaries from './allophoneDictionaries'
 
 import { createStore } from './createStore'
-import {
-  getExportXmlContent,
-  getInputTextFromType,
-  simplifyAcoustParamsDocument,
-  transformAcoustParamsXmlToPhrases,
-  transformPhraseNodesToDataset,
-  transformProcessBlobToStream,
-  transformRawVoiceTypes,
-} from './helpers'
+import getExportXmlContent from './getExportXmlContent'
+import getInputTextFromType from './getInputTextFromType'
+import simplifyAcoustParamsDocument from './simplifyAcoustParamsDocument'
+import transformAcoustParamsXmlToPhrases from './transformAcoustParamsXmlToPhrases'
+import transformPhraseNodesToDataset from './transformPhraseNodesToDataset'
+import transformProcessBlobToStream from './transformProcessBlobToStream'
+import transformRawVoiceTypes from './transformRawVoiceTypes'
 
 export const textTab = 'text'
 export const xmlTab = 'xml'
