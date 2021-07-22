@@ -128,6 +128,20 @@ body,
   width: 100%;
 }
 
+.controls-container {
+  width: 100%;
+
+  &.simplified-version-loaded {
+    display: grid;
+    grid-column-gap: 1rem;
+    grid-template-columns: 2fr 1fr;
+
+    @include mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
 .main-chart-container {
   align-items: center;
   display: flex;
@@ -359,6 +373,89 @@ input.input, .select select, .select.select {
   font-size: 1rem;
   font-weight: bold;
   text-align: center;
+}
+
+.proportional-editing-controls {
+  align-items: center;
+  display: grid;
+  grid-column-gap: 0.5rem;
+  grid-template-columns: auto 1fr;
+  height: 2rem;
+
+  input[type=checkbox] {
+    height: 1.25rem;
+    width: 1.25rem;
+  }
+}
+
+.range-input-container {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  position: relative;
+
+  progress.progress.is-primary[disabled="true"] {
+    &::-moz-progress-bar {
+      background-color: $grey-light;
+    }
+
+    &::-webkit-progress-value {
+      background-color: $grey-light;
+    }
+
+    &::ms-fill {
+      background-color: $grey-light;
+
+    }
+  }
+}
+
+.range-input-mark {
+  bottom: 100%;
+  font-size: 0.75rem;
+  position: absolute;
+
+  &.start {
+    left: 0;
+  }
+
+  &.end {
+    right: 0;
+  }
+}
+
+.range-input-current-range-mark {
+  align-items: center;
+  background-color: $primary;
+  border-radius: 0.25rem;
+  color: $white;
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: bold;
+  height: 1rem;
+  justify-content: center;
+  left: 0;
+  position: absolute;
+  top: 100%;
+  transform: translate(0, 0.25rem);
+  width: 1.25rem;
+}
+
+.range-input-slider-thumb {
+  background-color: $white;
+  border: 1px solid $primary;
+  border-radius: 1.25rem;
+  cursor: pointer;
+  height: 1.25rem;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 1.25rem;
+
+  &[disabled="true"] {
+    border-color: $grey;
+    cursor: not-allowed;
+  }
 }
 
 // transitions

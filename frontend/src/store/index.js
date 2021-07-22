@@ -32,6 +32,8 @@ const store = createStore({
     xmlOriginalDownloadUrl: null,
     simplifiedVersionLoaded: false,
     allophoneDictionaries: null,
+    proportionalEditEnabled: false,
+    proportionalEditRange: 1,
     error: {
       fetchVoices: null,
       getAudioStream: null,

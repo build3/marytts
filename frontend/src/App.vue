@@ -40,8 +40,12 @@
   </section>
 
   <section class="is-flex is-flex-direction-column is-align-items-center px-4">
-    <div class="form-container">
+    <div
+      class="controls-container"
+      :class="{ 'simplified-version-loaded': simplifiedVersionLoaded }"
+    >
       <controls />
+      <proportional-editing />
     </div>
   </section>
 
@@ -58,6 +62,8 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 
+import Controls from './components/Controls.vue'
+import ProportionalEditing from './components/ProportionalEditing.vue'
 import PhonemeSelector from './components/PhonemeSelector.vue'
 import { useStore } from './store/createStore'
 
@@ -68,6 +74,8 @@ const originalStream = computed(() => store.originalStream)
 
 const errorValues = computed(() => Object.values(store.error).filter(Boolean))
 const firstErrorMessage = computed(() => errorValues.value[0])
+
+const simplifiedVersionLoaded = computed(() => store.simplifiedVersionLoaded)
 
 const errorClearTimeout = ref(null)
 

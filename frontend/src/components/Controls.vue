@@ -1,96 +1,101 @@
 <template>
-  <div class="controls-section-row pt-2 pb-0" v-show="simplifiedVersionLoaded">
-    <div class="controls-section-label">Play audio</div>
-    <div class="controls-section-label">Export XML</div>
-  </div>
-  <div
-    class="button-row pb-4"
-    :class="{
-      'is-condensed': simplifiedVersionLoaded,
-      'pt-2': simplifiedVersionLoaded,
-      'pt-4': !simplifiedVersionLoaded,
-    }"
-    v-show="areControlsVisible"
-  >
-    <button
-      class="button is-primary has-text-weight-bold is-flex-mobile-button"
-      :disabled="!stream"
-      @click="playStream"
+  <div class="controls">
+    <div
+      class="controls-section-row pt-2 pb-0"
+      v-show="simplifiedVersionLoaded"
     >
-      <span class="icon is-small">
-        <play-icon />
-      </span>
-      <span class="button-label">{{ playButtonLabel }}</span>
-    </button>
-
-    <button
-      class="button is-primary has-text-weight-bold is-flex-mobile-button"
-      v-if="simplifiedVersionLoaded"
-      @click="playOriginalStream"
+      <div class="controls-section-label">Play audio</div>
+      <div class="controls-section-label">Export XML</div>
+    </div>
+    <div
+      class="button-row pb-4"
+      :class="{
+        'is-condensed': simplifiedVersionLoaded,
+        'pt-2': simplifiedVersionLoaded,
+        'pt-4': !simplifiedVersionLoaded,
+      }"
+      v-show="areControlsVisible"
     >
-      <span class="icon is-small">
-        <play-icon />
-      </span>
-      <span class="button-label">Original</span>
-    </button>
+      <button
+        class="button is-primary has-text-weight-bold is-flex-mobile-button"
+        :disabled="!stream"
+        @click="playStream"
+      >
+        <span class="icon is-small">
+          <play-icon />
+        </span>
+        <span class="button-label">{{ playButtonLabel }}</span>
+      </button>
 
-    <button
-      class="
-        button
-        has-text-weight-bold
-        is-primary is-fullwidth is-flex-mobile-button
-      "
-      :disabled="simplifyDisabled"
-      v-if="!simplifiedVersionLoaded"
-      @click="openSimplifyModal"
-    >
-      <span class="icon is-small">
-        <edit-icon />
-      </span>
-      <span class="button-label"> Simplify &amp; edit </span>
-    </button>
+      <button
+        class="button is-primary has-text-weight-bold is-flex-mobile-button"
+        v-if="simplifiedVersionLoaded"
+        @click="playOriginalStream"
+      >
+        <span class="icon is-small">
+          <play-icon />
+        </span>
+        <span class="button-label">Original</span>
+      </button>
 
-    <div class="button-row-spacer" v-if="simplifiedVersionLoaded"></div>
+      <button
+        class="
+          button
+          has-text-weight-bold
+          is-primary is-fullwidth is-flex-mobile-button
+        "
+        :disabled="simplifyDisabled"
+        v-if="!simplifiedVersionLoaded"
+        @click="openSimplifyModal"
+      >
+        <span class="icon is-small">
+          <edit-icon />
+        </span>
+        <span class="button-label"> Simplify &amp; edit </span>
+      </button>
 
-    <anchor-button :href="xmlDownloadUrl" file-name="MaryTTS.xml">
-      <template #default="{ disabled }">
-        <button
-          class="
-            button
-            has-text-weight-bold
-            is-primary is-fullwidth is-flex-mobile-button
-          "
-          :disabled="disabled"
-        >
-          <span class="icon is-medium">
-            <export-icon />
-          </span>
-          <span class="button-label">{{ exportXmlButtonLabel }}</span>
-        </button>
-      </template>
-    </anchor-button>
+      <div class="button-row-spacer" v-if="simplifiedVersionLoaded"></div>
 
-    <anchor-button
-      :href="xmlOriginalDownloadUrl"
-      file-name="MaryTTS.xml"
-      v-if="xmlOriginalDownloadUrl"
-    >
-      <template #default="{ disabled }">
-        <button
-          class="
-            button
-            has-text-weight-bold
-            is-primary is-fullwidth is-flex-mobile-button
-          "
-          :disabled="disabled"
-        >
-          <span class="icon is-medium">
-            <export-icon />
-          </span>
-          <span class="button-label">Original</span>
-        </button>
-      </template>
-    </anchor-button>
+      <anchor-button :href="xmlDownloadUrl" file-name="MaryTTS.xml">
+        <template #default="{ disabled }">
+          <button
+            class="
+              button
+              has-text-weight-bold
+              is-primary is-fullwidth is-flex-mobile-button
+            "
+            :disabled="disabled"
+          >
+            <span class="icon is-medium">
+              <export-icon />
+            </span>
+            <span class="button-label">{{ exportXmlButtonLabel }}</span>
+          </button>
+        </template>
+      </anchor-button>
+
+      <anchor-button
+        :href="xmlOriginalDownloadUrl"
+        file-name="MaryTTS.xml"
+        v-if="xmlOriginalDownloadUrl"
+      >
+        <template #default="{ disabled }">
+          <button
+            class="
+              button
+              has-text-weight-bold
+              is-primary is-fullwidth is-flex-mobile-button
+            "
+            :disabled="disabled"
+          >
+            <span class="icon is-medium">
+              <export-icon />
+            </span>
+            <span class="button-label">Original</span>
+          </button>
+        </template>
+      </anchor-button>
+    </div>
   </div>
 
   <transition name="fade">

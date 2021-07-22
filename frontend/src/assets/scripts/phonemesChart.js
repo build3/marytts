@@ -128,6 +128,12 @@ function getPhraseData({
       },
       pointIndex,
     ) => {
+      const centerY =
+        initialContainerHeight -
+        margin.bottom -
+        (y * (initialContainerHeight - margin.top - margin.bottom)) /
+          yScale.domain()[0]
+
       chartPointContainer
         .append('circle')
         .attr('fill', color)
@@ -143,13 +149,8 @@ function getPhraseData({
             (x * (chartWidth - margin.left - margin.right)) /
               xScale.domain()[1],
         )
-        .attr(
-          'cy',
-          initialContainerHeight -
-            margin.bottom -
-            (y * (initialContainerHeight - margin.top - margin.bottom)) /
-              yScale.domain()[0],
-        )
+        .attr('cy', centerY)
+        .attr('starting-cy', centerY)
 
       if (!repeated && editable) {
         const selectorX =
@@ -293,6 +294,8 @@ function redrawChart({
   initialContainerHeight,
   store,
   phonemeDictionary,
+  proportionalEditRange,
+  proportionalEditEnabled,
 }) {
   const root = d3.select('#main-chart-container')
 
@@ -699,6 +702,70 @@ function redrawChart({
 
   // CHART POINT DRAGGING EVENT
 
+  let startingY = null
+
+  function proportionalEditFunction({ indexDiff }) {
+    if (Math.abs(indexDiff) > proportionalEditRange.value) {
+      return 0
+    }
+
+    return (
+      0.1 *
+      Math.exp(
+        -(Math.log(10) / proportionalEditRange.value ** 2) *
+          (indexDiff - proportionalEditRange.value) *
+          (indexDiff + proportionalEditRange.value),
+      )
+    )
+  }
+
+  function handleProportionalEdit({
+    indexDiff,
+    phraseIndex,
+    pointIndex,
+    datasetIndex,
+    pointYDiff,
+  }) {
+    const dragPoint = document.querySelector(
+      `circle[phrase-index="${phraseIndex}"][point-index="${
+        pointIndex + indexDiff
+      }"][point-editable="true"]`,
+    )
+
+    if (dragPoint) {
+      const { recalculateChartPath } = phraseChartData[phraseIndex]
+
+      const currentPointY = parseInt(dragPoint.getAttribute('starting-cy'), 10)
+
+      const proportionalEditDiff = proportionalEditFunction({
+        indexDiff,
+      })
+
+      if (proportionalEditDiff === 0) {
+        return false
+      }
+
+      const pointY = Math.max(
+        margin.top,
+        Math.min(
+          initialContainerHeight - margin.bottom,
+          currentPointY - pointYDiff * proportionalEditDiff,
+        ),
+      )
+
+      dragPoint.setAttribute('cy', pointY)
+      recalculateChartPath(
+        pointIndex + indexDiff,
+        pointY,
+        datasetIndex + indexDiff,
+      )
+
+      return true
+    }
+
+    return false
+  }
+
   function onDragEvent(event) {
     const phraseIndex = parseInt(this.getAttribute('phrase-index'), 10)
     const pointIndex = parseInt(this.getAttribute('point-index'), 10)
@@ -706,15 +773,56 @@ function redrawChart({
 
     const { recalculateChartPath } = phraseChartData[phraseIndex]
 
-    const pointY = Math.round(
-      Math.max(
-        margin.top,
-        Math.min(initialContainerHeight - margin.bottom, event.y),
-      ),
+    const pointY = Math.max(
+      margin.top,
+      Math.min(initialContainerHeight - margin.bottom, event.y),
     )
+
     this.setAttribute('cy', pointY)
     recalculateChartPath(pointIndex, pointY, datasetIndex)
     handleTooltipText.bind(this)()
+
+    if (!proportionalEditEnabled.value) {
+      return
+    }
+
+    const pointYDiff = startingY - event.y
+
+    for (
+      let rangeStep = 1;
+      rangeStep <= proportionalEditRange.value;
+      rangeStep += 1
+    ) {
+      const proportionalEditResult = handleProportionalEdit({
+        indexDiff: rangeStep,
+        phraseIndex,
+        pointIndex,
+        datasetIndex,
+        pointYDiff,
+      })
+
+      if (!proportionalEditResult) {
+        break
+      }
+    }
+
+    for (
+      let rangeStep = -1;
+      rangeStep >= -proportionalEditRange.value;
+      rangeStep -= 1
+    ) {
+      const proportionalEditResult = handleProportionalEdit({
+        indexDiff: rangeStep,
+        phraseIndex,
+        pointIndex,
+        datasetIndex,
+        pointYDiff,
+      })
+
+      if (!proportionalEditResult) {
+        break
+      }
+    }
   }
 
   function onDragEndEvent() {
@@ -736,6 +844,12 @@ function redrawChart({
 
       debouncedRegenerateAudio()
     }
+
+    document
+      .querySelectorAll('circle[point-editable="true"]')
+      .forEach(chartPoint => {
+        chartPoint.setAttribute('starting-cy', chartPoint.getAttribute('cy'))
+      })
   }
 
   chartPointContainer
@@ -750,12 +864,16 @@ function redrawChart({
       .call(
         d3
           .drag()
-          .on('start', onDragEvent)
+          .on('start', function onDragStart(event) {
+            startingY = event.y
+            onDragEvent.bind(this)(event)
+          })
           .on('drag', onDragEvent)
           .on('end', function onDragEnd(event) {
             onDragEvent.bind(this)(event)
             handleTooltipHiding.bind(this)(event)
             onDragEndEvent.bind(this)(event)
+            startingY = null
           }),
       )
   }
@@ -765,6 +883,8 @@ export default function getChartGenerator() {
   const store = useStore()
 
   const phonemeDictionary = computed(() => store.phonemeDictionary)
+  const proportionalEditRange = computed(() => store.proportionalEditRange)
+  const proportionalEditEnabled = computed(() => store.proportionalEditEnabled)
 
   return ({ dataset, originalDataset, color, editable }) => {
     function onResizeHandler() {
@@ -787,6 +907,8 @@ export default function getChartGenerator() {
         initialContainerHeight,
         store,
         phonemeDictionary: phonemeDictionary.value,
+        proportionalEditRange,
+        proportionalEditEnabled,
       })
 
       store.closePhonemeSelector()

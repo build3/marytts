@@ -12,7 +12,6 @@ import FromXml from './components/FromXml.vue'
 import AudioButton from './components/AudioButton.vue'
 import InputRow from './components/InputRow.vue'
 import VoiceSelect from './components/VoiceSelect.vue'
-import Controls from './components/Controls.vue'
 
 import './assets/styles/main.scss'
 import store from './store'
@@ -28,7 +27,6 @@ app.component('FromXml', FromXml)
 app.component('AudioButton', AudioButton)
 app.component('InputRow', InputRow)
 app.component('VoiceSelect', VoiceSelect)
-app.component('Controls', Controls)
 
 app.component('FontAwesomeIcon', FontAwesomeIcon)
 
