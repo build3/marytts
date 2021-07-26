@@ -375,16 +375,60 @@ input.input, .select select, .select.select {
   text-align: center;
 }
 
+.proportional-editing {
+  display: flex;
+  flex-direction: column;
+}
+
 .proportional-editing-controls {
   align-items: center;
   display: grid;
+  flex-grow: 1;
   grid-column-gap: 0.5rem;
   grid-template-columns: auto 1fr;
-  height: 2rem;
+}
+
+$proportional-editing-checkmark-path-length: 23.74961890px;
+
+.proportional-editing-checkmark {
+  align-items: center;
+  background-color: $grey-lightest;
+  border-radius: 0.25rem;
+  color: color.change($primary, $lightness: 37%);
+  cursor: pointer;
+  display: flex;
+  height: 100%;
+  inset: 0;
+  justify-content: center;
+  opacity: 1;
+  position: absolute;
+  stroke-dasharray: $proportional-editing-checkmark-path-length;
+  stroke-dashoffset: $proportional-editing-checkmark-path-length;
+  transition: stroke-dashoffset 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  width: 100%;
+}
+
+.proportional-editing-checkbox {
+  height: 1.5rem;
+  position: relative;
+  width: 1.5rem;
 
   input[type=checkbox] {
-    height: 1.25rem;
-    width: 1.25rem;
+    display: none;
+
+    &:checked ~ .proportional-editing-checkmark {
+      background-color: color.change($primary, $lightness: 37%);
+      color: $white;
+      stroke-dashoffset: 0;
+    }
+
+    &:not(:checked) ~ .proportional-editing-checkmark:hover {
+      background-color: $grey-lighter;
+    }
+
+    &:checked ~ .proportional-editing-checkmark:hover {
+      background-color: color.change($primary, $lightness: 38%);
+    }
   }
 }
 
@@ -394,19 +438,46 @@ input.input, .select select, .select.select {
   height: 100%;
   position: relative;
 
-  progress.progress.is-primary[disabled="true"] {
-    &::-moz-progress-bar {
+  progress.progress.is-primary {
+    border-radius: 0;
+    height: 1.5rem;
+    margin-bottom: 0;
+
+    &[disabled="true"] {
+      &::-moz-progress-bar {
+        background-color: $grey-light;
+      }
+
+      &::-webkit-progress-value {
+        background-color: $grey-light;
+      }
+
+      &::ms-fill {
+        background-color: $grey-light;
+      }
+    }
+  }
+}
+
+.progress-boundary {
+  height: 1.5rem;
+  border-radius: 1.5rem;
+  width: 0.75rem;
+
+  &.start {
+    background-color: $primary;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+
+    &.disabled {
       background-color: $grey-light;
     }
+  }
 
-    &::-webkit-progress-value {
-      background-color: $grey-light;
-    }
-
-    &::ms-fill {
-      background-color: $grey-light;
-
-    }
+  &.end {
+    background-color: $grey-lightest;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
   }
 }
 
@@ -434,7 +505,7 @@ input.input, .select select, .select.select {
   font-weight: bold;
   height: 1rem;
   justify-content: center;
-  left: 0;
+  left: 0.125rem;
   position: absolute;
   top: 100%;
   transform: translate(0, 0.25rem);
@@ -444,13 +515,14 @@ input.input, .select select, .select.select {
 .range-input-slider-thumb {
   background-color: $white;
   border: 1px solid $primary;
-  border-radius: 1.25rem;
+  border-radius: 1.5rem;
   cursor: pointer;
-  height: 1.25rem;
+  height: 1.5rem;
   left: 0;
   position: absolute;
-  top: 0;
-  width: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.5rem;
 
   &[disabled="true"] {
     border-color: $grey;

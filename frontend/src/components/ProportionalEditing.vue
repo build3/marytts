@@ -2,11 +2,16 @@
   <div class="proportional-editing py-2" v-if="simplifiedVersionLoaded">
     <div class="controls-section-label">Proportional editing</div>
     <div class="py-2 proportional-editing-controls">
-      <input
-        type="checkbox"
-        name="proportionalEditEnabled"
-        v-model="proportionalEditEnabled"
-      />
+      <label class="proportional-editing-checkbox">
+        <input
+          type="checkbox"
+          name="proportionalEditEnabled"
+          v-model="proportionalEditEnabled"
+        />
+        <div class="proportional-editing-checkmark">
+          <tick-icon></tick-icon>
+        </div>
+      </label>
       <div class="range-input-container">
         <div class="range-input-mark start">1 point</div>
         <div class="range-input-mark end">10 points</div>
@@ -22,6 +27,10 @@
             {{ proportionalEditRange }}
           </div>
         </div>
+        <div
+          class="progress-boundary start"
+          :class="{ disabled: !proportionalEditEnabled }"
+        ></div>
         <progress
           class="progress is-primary"
           :disabled="!proportionalEditEnabled"
@@ -29,6 +38,7 @@
           :max="maxProportionalEditRange"
           :value="currentRangePercentage"
         ></progress>
+        <div class="progress-boundary end"></div>
       </div>
     </div>
   </div>
@@ -39,6 +49,8 @@ import { drag, selectAll } from 'd3'
 import { computed, ref, toRef, watch } from 'vue'
 
 import { useStore } from '../store/createStore'
+
+import TickIcon from '../icons/Tick.vue'
 
 const store = useStore()
 

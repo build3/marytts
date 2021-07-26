@@ -93,6 +93,7 @@ export default function transformPhraseNodesToDataset(phraseNodes) {
                   ? lastPhonemeData.y
                   : 0,
               node: lastPhonemeNotDrawn ? lastPhonemeData.node : phonemeNode,
+              originalNode: phonemeNode,
               nodeFrequencyIndex: lastPhonemeNotDrawn
                 ? lastPhonemeData.nodeFrequencyIndex
                 : null,
