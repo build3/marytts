@@ -295,7 +295,6 @@ function redrawChart({
   store,
   phonemeDictionary,
   proportionalEditRange,
-  proportionalEditEnabled,
 }) {
   const root = d3.select('#main-chart-container')
 
@@ -782,10 +781,6 @@ function redrawChart({
     recalculateChartPath(pointIndex, pointY, datasetIndex)
     handleTooltipText.bind(this)()
 
-    if (!proportionalEditEnabled.value) {
-      return
-    }
-
     const pointYDiff = startingY - event.y
 
     for (
@@ -884,7 +879,6 @@ export default function getChartGenerator() {
 
   const phonemeDictionary = computed(() => store.phonemeDictionary)
   const proportionalEditRange = computed(() => store.proportionalEditRange)
-  const proportionalEditEnabled = computed(() => store.proportionalEditEnabled)
 
   return ({ dataset, originalDataset, color, editable }) => {
     function onResizeHandler() {
@@ -908,7 +902,6 @@ export default function getChartGenerator() {
         store,
         phonemeDictionary: phonemeDictionary.value,
         proportionalEditRange,
-        proportionalEditEnabled,
       })
 
       store.closePhonemeSelector()

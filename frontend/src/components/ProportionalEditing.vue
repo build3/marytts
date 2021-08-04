@@ -1,44 +1,25 @@
 <template>
-  <div class="proportional-editing py-2" v-if="simplifiedVersionLoaded">
-    <div class="controls-section-label">Proportional editing</div>
-    <div class="py-2 proportional-editing-controls">
-      <label class="proportional-editing-checkbox">
-        <input
-          type="checkbox"
-          name="proportionalEditEnabled"
-          v-model="proportionalEditEnabled"
-        />
-        <div class="proportional-editing-checkmark">
-          <tick-icon></tick-icon>
-        </div>
-      </label>
+  <div class="proportional-editing" v-if="simplifiedVersionLoaded">
+    <div class="controls-section-label pt-2">Proportional editing</div>
+    <div class="pt-2 pb-4 proportional-editing-controls">
       <div class="range-input-container">
-        <div class="range-input-mark start">1 point</div>
-        <div class="range-input-mark end">10 points</div>
-        <div
-          class="range-input-slider-thumb"
-          ref="thumbRef"
-          :disabled="!proportionalEditEnabled"
-        >
+        <div class="range-input-progress-bar">
           <div
-            v-if="proportionalEditEnabled"
-            class="range-input-current-range-mark"
-          >
-            {{ proportionalEditRange }}
+            class="range-input-progress-bar-active"
+            :style="{ '--current-progress': currentRangePercentage }"
+          ></div>
+        </div>
+        <div class="range-input-slider-thumb" ref="thumbRef" />
+        <div
+          v-for="index in maxProportionalEditRange"
+          :key="index"
+          class="range-input-slider-dot-container"
+          @mousedown="() => setProportionalEditRange(index)"
+        >
+          <div class="range-input-slider-dot">
+            <div class="range-input-slider-label">{{ index - 1 }}</div>
           </div>
         </div>
-        <div
-          class="progress-boundary start"
-          :class="{ disabled: !proportionalEditEnabled }"
-        ></div>
-        <progress
-          class="progress is-primary"
-          :disabled="!proportionalEditEnabled"
-          :min="minProportionalEditRange"
-          :max="maxProportionalEditRange"
-          :value="currentRangePercentage"
-        ></progress>
-        <div class="progress-boundary end"></div>
       </div>
     </div>
   </div>
@@ -50,33 +31,58 @@ import { computed, ref, toRef, watch } from 'vue'
 
 import { useStore } from '../store/createStore'
 
-import TickIcon from '../icons/Tick.vue'
-
 const store = useStore()
 
 const thumbRef = ref(null)
 
 const simplifiedVersionLoaded = computed(() => store.simplifiedVersionLoaded)
 
-const proportionalEditEnabled = toRef(store, 'proportionalEditEnabled')
 const proportionalEditRange = toRef(store, 'proportionalEditRange')
 
 const minProportionalEditRange = 1
-const maxProportionalEditRange = 10
+const maxProportionalEditRange = 11
 const currentRangePercentage = computed(
   () =>
-    (maxProportionalEditRange * (proportionalEditRange.value - 1)) /
+    proportionalEditRange.value /
     (maxProportionalEditRange - minProportionalEditRange),
 )
 
+const maxProgressBarWidth = computed(() => {
+  if (thumbRef.value && thumbRef.value.parentElement) {
+    const elementStyle = getComputedStyle(thumbRef.value)
+    const parentStyle = getComputedStyle(thumbRef.value.parentElement)
+
+    const elementWidth = parseInt(elementStyle.width, 10)
+    const parentWidth = parseInt(parentStyle.width, 10)
+
+    return parentWidth - elementWidth
+  }
+
+  return null
+})
+
+function setProportionalEditRange(roundedValue) {
+  const maxWidth = maxProgressBarWidth.value
+
+  if (maxWidth === null) {
+    return
+  }
+
+  const roundedValueX =
+    (maxWidth * (roundedValue - minProportionalEditRange)) /
+    (maxProportionalEditRange - minProportionalEditRange)
+
+  thumbRef.value.style.left = `${roundedValueX}px`
+  proportionalEditRange.value = roundedValue - 1
+}
+
 function onDragEvent(event) {
-  const elementStyle = getComputedStyle(this)
-  const parentStyle = getComputedStyle(this.parentElement)
+  const maxWidth = maxProgressBarWidth.value
 
-  const elementWidth = parseInt(elementStyle.width, 10)
-  const parentWidth = parseInt(parentStyle.width, 10)
+  if (maxWidth === null) {
+    return
+  }
 
-  const maxWidth = parentWidth - elementWidth
   const progress = Math.min(maxWidth, Math.max(0, event.x))
 
   const roundedValue = Math.round(
@@ -85,26 +91,17 @@ function onDragEvent(event) {
         maxWidth,
   )
 
-  const roundedValueX =
-    (maxWidth * (roundedValue - minProportionalEditRange)) /
-    (maxProportionalEditRange - minProportionalEditRange)
-
-  this.style.left = `${roundedValueX}px`
-  proportionalEditRange.value = roundedValue
+  setProportionalEditRange(roundedValue)
 }
 
 watch(
-  [simplifiedVersionLoaded, thumbRef, proportionalEditEnabled],
-  ([
-    simplifiedVersionLoadedValue,
-    thumbRefValue,
-    proportionalEditEnabledValue,
-  ]) => {
+  [simplifiedVersionLoaded, thumbRef],
+  ([simplifiedVersionLoadedValue, thumbRefValue]) => {
     if (!thumbRefValue) {
       return
     }
 
-    if (simplifiedVersionLoadedValue && proportionalEditEnabledValue) {
+    if (simplifiedVersionLoadedValue) {
       selectAll('.range-input-slider-thumb').call(
         drag()
           .on('start', onDragEvent)
