@@ -255,10 +255,9 @@ function getPhraseData({
   calculateChartPath()
 
   function recalculateChartPath(pointIndex, pointY, datasetIndex) {
-    const chartY = Math.round(
+    const chartY =
       ((initialContainerHeight - margin.bottom - pointY) * yScale.domain()[0]) /
-        (initialContainerHeight - margin.top - margin.bottom),
-    )
+      (initialContainerHeight - margin.top - margin.bottom)
 
     store.updateDatasetPoint({
       pointIndex: datasetIndex,
@@ -833,7 +832,7 @@ function redrawChart({
 
       currentFrequencyList[nodeFrequencyIndex] = currentFrequencyList[
         nodeFrequencyIndex
-      ].replace(/^(\d+),\d+$/, `$1,${y}`)
+      ].replace(/^(\d+),\d+$/, `$1,${Math.round(y)}`)
 
       node.setAttribute('f0', `(${currentFrequencyList.join(')(')})`)
 
